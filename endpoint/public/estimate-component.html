@@ -109,28 +109,28 @@ let step=0;
 const steps=document.querySelectorAll('.step');
 
 const data={
-  firstName:'',
+  first_name:'',
   email:'',
-  address:'',
-  roofType:'',
-  stories:''
+  address1:'',
+  roof_type:'',
+  of_stories:''
 };
 
 function next(){
   if(step===0) {
-    data.firstName=firstName.value.trim();
-    if(!data.firstName) return alert('Please enter your first name');
+    data.first_name=firstName.value.trim();
+    if(!data.first_name) return alert('Please enter your first name');
   }
   if(step===1) {
     data.email=email.value.trim();
     if(!data.email) return alert('Please enter your email');
   }
   if(step===2) {
-    data.address=address.value.trim();
-    if(!data.address) return alert('Please select an address from the dropdown');
+    data.address1=address.value.trim();
+    if(!data.address1) return alert('Please select an address from the dropdown');
   }
   if(step===3) {
-    if(!data.roofType) return alert('Please select a roof type');
+    if(!data.roof_type) return alert('Please select a roof type');
   }
   
   steps[step].classList.remove('active');
@@ -141,12 +141,12 @@ function next(){
 function pick(btn,val){
   btn.parentElement.querySelectorAll('.btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
-  if(step===3) data.roofType=val;
-  if(step===4) data.stories=val;
+  if(step===3) data.roof_type=val;
+  if(step===4) data.of_stories=val;
 }
 
 async function submitForm(){
-  if(!data.stories) return alert('Please select number of stories');
+  if(!data.of_stories) return alert('Please select number of stories');
   
   console.log('=== FORM SUBMISSION DEBUG ===');
   console.log('Step 1: Current data object:', JSON.stringify(data, null, 2));
@@ -158,11 +158,11 @@ async function submitForm(){
   const callbackId = 'est_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   
   const payload = {
-    firstName: data.firstName,
+    first_name: data.first_name,
     email: data.email,
-    address: data.address,
-    roofType: data.roofType,
-    stories: data.stories,
+    address1: data.address1,
+    roof_type: data.roof_type,
+    of_stories: data.of_stories,
     callbackId: callbackId,
     timestamp: new Date().toISOString()
   };
@@ -226,8 +226,8 @@ window.addEventListener('load',()=>{
   );
   ac.addListener('place_changed',()=>{
     const p=ac.getPlace();
-    data.address=p.formatted_address||'';
-    console.log('Address selected:', data.address);
+    data.address1=p.formatted_address||'';
+    console.log('Address selected:', data.address1);
   });
 });
 </script>
