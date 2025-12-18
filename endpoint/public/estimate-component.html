@@ -1,972 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instant Roof Estimate</title>
-    <style>
-        /* ========================================
-           COMPONENT STYLES
-           Copy everything inside this style tag
-        ======================================== */
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instant Roof Estimate</title>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #0A0E14;
-            color: #FFFFFF;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+  <!-- Google Places API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCm6Cw8lXx4as9YB57j-XmqYLGfSPEUW9Q&libraries=places"></script>
 
-        .estimate-container {
-            width: 100%;
-            max-width: 540px;
-            background: #0F1520;
-            border-radius: 16px;
-            padding: 48px 40px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            border: 1px solid #2D3A4D;
-        }
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .estimate-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0A0E14;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
 
-        .estimate-header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #ffffff;
-        }
+    .estimate-container {
+      width: 100%;
+      max-width: 540px;
+      background: #0F1520;
+      border-radius: 16px;
+      padding: 40px;
+      border: 1px solid #2D3A4D;
+    }
 
-        .estimate-header p {
-            font-size: 15px;
-            color: #9FBDC9;
-        }
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+    }
 
-        /* Question Container */
-        .question-block {
-            margin-bottom: 32px;
-        }
+    p.sub {
+      text-align: center;
+      color: #9FBDC9;
+      margin-bottom: 32px;
+    }
 
-        .question-block.hidden {
-            display: none;
-        }
+    .question { margin-bottom: 24px; }
+    .hidden { display: none; }
 
-        .question-label {
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 16px;
-            color: #FFFFFF;
-            display: block;
-        }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
 
-        /* Input Field */
-        .input-field {
-            width: 100%;
-            padding: 14px 16px;
-            font-size: 15px;
-            background: #0A0E14;
-            border: 1px solid #2D3A4D;
-            border-radius: 8px;
-            color: #FFFFFF;
-            transition: all 0.2s;
-        }
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid #2D3A4D;
+      background: #0A0E14;
+      color: #fff;
+      font-size: 15px;
+    }
 
-        .input-field:focus {
-            outline: none;
-            border-color: #00BFFF;
-            box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1);
-        }
+    .button-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
 
-        .input-field::placeholder {
-            color: #9FBDC9;
-        }
+    button.option {
+      padding: 14px;
+      border-radius: 8px;
+      border: 2px solid #2D3A4D;
+      background: #0A0E14;
+      color: #fff;
+      cursor: pointer;
+    }
 
-        /* Select Dropdown */
-        select.input-field {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2300BFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            padding-right: 40px;
-        }
+    button.option.selected {
+      background: #00BFFF;
+      border-color: #00BFFF;
+    }
 
-        select.input-field option {
-            background: #0F1520;
-            color: #FFFFFF;
-        }
+    button.submit {
+      width: 100%;
+      padding: 16px;
+      border-radius: 8px;
+      border: none;
+      background: #00BFFF;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 24px;
+    }
 
-        /* Button Group */
-        .button-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 12px;
-        }
-
-        .option-button {
-            padding: 14px 20px;
-            font-size: 15px;
-            font-weight: 500;
-            background: #0A0E14;
-            border: 2px solid #2D3A4D;
-            border-radius: 8px;
-            color: #FFFFFF;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .option-button:hover {
-            border-color: #00BFFF;
-            background: #0F1520;
-        }
-
-        .option-button.selected {
-            background: #00BFFF;
-            border-color: #00BFFF;
-            color: #FFFFFF;
-        }
-
-        .option-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Submit Button */
-        .submit-button {
-            width: 100%;
-            padding: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            background: #00BFFF;
-            border: none;
-            border-radius: 8px;
-            color: #FFFFFF;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 32px;
-            box-shadow: 0 0 20px rgba(0, 191, 255, 0.3);
-        }
-
-        .submit-button:hover:not(:disabled) {
-            background: #0056B3;
-            transform: translateY(-1px);
-            box-shadow: 0 0 30px rgba(0, 191, 255, 0.5);
-        }
-
-        .submit-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Loading State */
-        .loading-state {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .loading-state.hidden {
-            display: none;
-        }
-
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #2D3A4D;
-            border-top-color: #00BFFF;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 24px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 16px;
-            color: #9FBDC9;
-        }
-
-        /* Result State */
-        .result-state {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .result-state.hidden {
-            display: none;
-        }
-
-        .success-icon {
-            width: 64px;
-            height: 64px;
-            background: #00BFFF;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            font-size: 32px;
-            box-shadow: 0 0 30px rgba(0, 191, 255, 0.4);
-        }
-
-        .error-icon {
-            width: 64px;
-            height: 64px;
-            background: #EF4444;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            font-size: 32px;
-        }
-
-        .result-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #FFFFFF;
-        }
-
-        .estimate-price {
-            font-size: 48px;
-            font-weight: 700;
-            color: #00BFFF;
-            margin: 20px 0;
-            text-shadow: 0 0 20px rgba(0, 191, 255, 0.3);
-        }
-
-        .result-message {
-            font-size: 15px;
-            color: #9FBDC9;
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-
-        .retry-button {
-            padding: 12px 32px;
-            font-size: 15px;
-            font-weight: 500;
-            background: #0056B3;
-            border: none;
-            border-radius: 8px;
-            color: #FFFFFF;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .retry-button:hover {
-            background: #00BFFF;
-            box-shadow: 0 0 20px rgba(0, 191, 255, 0.3);
-        }
-
-        /* Progress Indicator */
-        .progress-dots {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 32px;
-        }
-
-        .progress-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #2D3A4D;
-            transition: all 0.3s;
-        }
-
-        .progress-dot.active {
-            background: #00BFFF;
-            width: 24px;
-            border-radius: 4px;
-            box-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
-        }
-    </style>
+    .loading,
+    .result {
+      text-align: center;
+    }
+  </style>
 </head>
+
 <body>
-    <!-- ========================================
-         COMPONENT HTML
-         Copy everything inside this div
-    ======================================== -->
-    <div class="estimate-container" id="estimateComponent">
-        <!-- Header -->
-        <div class="estimate-header">
-            <h1>Get Your Instant Estimate</h1>
-            <p>Answer a few quick questions</p>
+  <div class="estimate-container">
+    <h1>Instant Roof Estimate</h1>
+    <p class="sub">Answer a few quick questions</p>
+
+    <form id="estimateForm">
+      <div class="question">
+        <label>First Name</label>
+        <input id="firstName" required />
+      </div>
+
+      <div class="question hidden">
+        <label>Email</label>
+        <input id="email" type="email" required />
+      </div>
+
+      <div class="question hidden">
+        <label>Property Address</label>
+        <input id="address" placeholder="Start typing address…" required />
+      </div>
+
+      <div class="question hidden">
+        <label>Roof Type</label>
+        <div class="button-group">
+          <button type="button" class="option" data-roof="Asphalt">Asphalt</button>
+          <button type="button" class="option" data-roof="Metal">Metal</button>
+          <button type="button" class="option" data-roof="Tile">Tile</button>
+          <button type="button" class="option" data-roof="Other">Other</button>
         </div>
+      </div>
 
-        <!-- Progress Dots -->
-        <div class="progress-dots">
-            <div class="progress-dot active" data-step="1"></div>
-            <div class="progress-dot" data-step="2"></div>
-            <div class="progress-dot" data-step="3"></div>
-            <div class="progress-dot" data-step="4"></div>
-            <div class="progress-dot" data-step="5"></div>
-            <div class="progress-dot" data-step="6"></div>
-            <div class="progress-dot" data-step="7"></div>
-            <div class="progress-dot" data-step="8"></div>
+      <div class="question hidden">
+        <label>Stories</label>
+        <div class="button-group">
+          <button type="button" class="option" data-stories="1">1 Story</button>
+          <button type="button" class="option" data-stories="2">2 Stories</button>
+          <button type="button" class="option" data-stories="3">3+ Stories</button>
         </div>
+      </div>
 
-        <!-- Form Container -->
-        <form id="estimateForm">
-            <!-- Question 1: First Name -->
-            <div class="question-block" data-question="1">
-                <label class="question-label">What's your first name?</label>
-                <input 
-                    type="text" 
-                    id="firstNameInput" 
-                    class="input-field" 
-                    placeholder="John"
-                    required
-                />
-            </div>
+      <button class="submit hidden" type="submit">Get My Estimate</button>
+    </form>
 
-            <!-- Question 2: Email -->
-            <div class="question-block hidden" data-question="2">
-                <label class="question-label">What's your email address?</label>
-                <input 
-                    type="email" 
-                    id="emailInput" 
-                    class="input-field" 
-                    placeholder="john@example.com"
-                    required
-                />
-            </div>
+    <div class="loading hidden">Calculating estimate…</div>
+    <div class="result hidden"></div>
+  </div>
 
-            <!-- Question 3: Street Address -->
-            <div class="question-block hidden" data-question="3">
-                <label class="question-label">What's your street address?</label>
-                <input 
-                    type="text" 
-                    id="streetInput" 
-                    class="input-field" 
-                    placeholder="123 Main St"
-                    required
-                />
-            </div>
+  <script>
+    const webhook =
+      "https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/EO7CUMjucJlR9uy7SuDa";
 
-            <!-- Question 4: City -->
-            <div class="question-block hidden" data-question="4">
-                <label class="question-label">What city?</label>
-                <input 
-                    type="text" 
-                    id="cityInput" 
-                    class="input-field" 
-                    placeholder="Los Angeles"
-                    required
-                />
-            </div>
+    const form = document.getElementById("estimateForm");
+    const steps = document.querySelectorAll(".question");
+    const submitBtn = document.querySelector(".submit");
+    const loading = document.querySelector(".loading");
+    const result = document.querySelector(".result");
 
-            <!-- Question 5: State -->
-            <div class="question-block hidden" data-question="5">
-                <label class="question-label">What state?</label>
-                <input 
-                    type="text" 
-                    id="stateInput" 
-                    class="input-field" 
-                    placeholder="CA"
-                    maxlength="2"
-                    required
-                />
-            </div>
+    let step = 0;
+    let data = {};
 
-            <!-- Question 6: ZIP Code -->
-            <div class="question-block hidden" data-question="6">
-                <label class="question-label">ZIP Code</label>
-                <input 
-                    type="text" 
-                    id="zipInput" 
-                    class="input-field" 
-                    placeholder="90001"
-                    pattern="[0-9]{5}"
-                    maxlength="5"
-                    required
-                />
-            </div>
+    function next() {
+      steps[step].classList.add("hidden");
+      step++;
+      if (steps[step]) steps[step].classList.remove("hidden");
+      if (step === steps.length - 1) submitBtn.classList.remove("hidden");
+    }
 
-            <!-- Question 7: Roof Type -->
-            <div class="question-block hidden" data-question="7">
-                <label class="question-label">What type of roof do you have?</label>
-                <div class="button-group">
-                    <button type="button" class="option-button" data-value="Asphalt">Asphalt</button>
-                    <button type="button" class="option-button" data-value="Metal">Metal</button>
-                    <button type="button" class="option-button" data-value="Tile">Tile</button>
-                    <button type="button" class="option-button" data-value="Other">Other</button>
-                </div>
-            </div>
+    steps[0].querySelector("input").addEventListener("blur", e => {
+      data.firstName = e.target.value;
+      if (data.firstName) next();
+    });
 
-            <!-- Question 8: Stories -->
-            <div class="question-block hidden" data-question="8">
-                <label class="question-label">How many stories is your home?</label>
-                <div class="button-group">
-                    <button type="button" class="option-button" data-value="1">1 Story</button>
-                    <button type="button" class="option-button" data-value="2">2 Stories</button>
-                    <button type="button" class="option-button" data-value="3">3+ Stories</button>
-                </div>
-            </div>
+    steps[1].querySelector("input").addEventListener("blur", e => {
+      data.email = e.target.value;
+      if (data.email) next();
+    });
 
-            <!-- Submit Button -->
-            <button type="submit" class="submit-button" id="submitButton">
-                Get My Estimate
-            </button>
-        </form>
+    const addressInput = document.getElementById("address");
+    const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+      types: ["address"],
+      componentRestrictions: { country: "us" }
+    });
 
-        <!-- Loading State -->
-        <div class="loading-state hidden" id="loadingState">
-            <div class="spinner"></div>
-            <p class="loading-text">Calculating your estimate...</p>
-        </div>
+    autocomplete.addListener("place_changed", () => {
+      data.address = autocomplete.getPlace().formatted_address;
+      next();
+    });
 
-        <!-- Result State -->
-        <div class="result-state hidden" id="resultState">
-            <!-- Success Result (populated dynamically) -->
-        </div>
-    </div>
+    document.querySelectorAll("[data-roof]").forEach(btn => {
+      btn.onclick = () => {
+        data.roof_type = btn.dataset.roof;
+        next();
+      };
+    });
 
-    <script>
-        /* ========================================
-           COMPONENT JAVASCRIPT
-           Copy everything inside this script tag
-        ======================================== */
+    document.querySelectorAll("[data-stories]").forEach(btn => {
+      btn.onclick = () => {
+        data.stories = btn.dataset.stories;
+      };
+    });
 
-        (function() {
-            'use strict';
+    form.onsubmit = async e => {
+      e.preventDefault();
+      form.classList.add("hidden");
+      loading.classList.remove("hidden");
 
-            // ====================================
-            // CONFIGURATION
-            // ====================================
-            const CONFIG = {
-                // REPLACE THIS URL WITH YOUR GHL INBOUND WEBHOOK
-                ghlWebhookUrl: 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/EO7CUMjucJlR9uy7SuDa',
-                
-                // Callback endpoint identifier (used by GHL to send results back)
-                callbackId: generateCallbackId()
-            };
+      await fetch(webhook, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: data.firstName,
+          email: data.email,
+          address: data.address,
+          roof_type: data.roof_type,
+          stories: data.stories
+        })
+      });
 
-            // ====================================
-            // STATE MANAGEMENT
-            // ====================================
-            const state = {
-                currentQuestion: 1,
-                data: {
-                    firstName: '',
-                    email: '',
-                    street: '',
-                    city: '',
-                    state: '',
-                    zip: '',
-                    roofType: '',
-                    stories: null
-                }
-            };
-
-            // ====================================
-            // DOM ELEMENTS
-            // ====================================
-            const elements = {
-                form: document.getElementById('estimateForm'),
-                submitButton: document.getElementById('submitButton'),
-                loadingState: document.getElementById('loadingState'),
-                resultState: document.getElementById('resultState'),
-                firstNameInput: document.getElementById('firstNameInput'),
-                emailInput: document.getElementById('emailInput'),
-                streetInput: document.getElementById('streetInput'),
-                cityInput: document.getElementById('cityInput'),
-                stateInput: document.getElementById('stateInput'),
-                zipInput: document.getElementById('zipInput'),
-                questions: document.querySelectorAll('.question-block'),
-                progressDots: document.querySelectorAll('.progress-dot')
-            };
-
-            // ====================================
-            // UTILITY FUNCTIONS
-            // ====================================
-            function log(level, message, data) {
-                const timestamp = new Date().toISOString();
-                const prefix = '[EstimateComponent]';
-                if (data) {
-                    console.log(`${timestamp} ${prefix} [${level.toUpperCase()}]`, message, data);
-                } else {
-                    console.log(`${timestamp} ${prefix} [${level.toUpperCase()}]`, message);
-                }
-            }
-
-            function generateCallbackId() {
-                const id = 'est_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                log('info', 'Generated new callbackId', { callbackId: id });
-                return id;
-            }
-
-            function showElement(element) {
-                element.classList.remove('hidden');
-                log('info', 'Element shown', { element: element.id || element.className });
-            }
-
-            function hideElement(element) {
-                element.classList.add('hidden');
-                log('info', 'Element hidden', { element: element.id || element.className });
-            }
-
-            function updateProgressDots() {
-                elements.progressDots.forEach((dot, index) => {
-                    if (index + 1 <= state.currentQuestion) {
-                        dot.classList.add('active');
-                    } else {
-                        dot.classList.remove('active');
-                    }
-                });
-                log('info', 'Progress dots updated', { currentQuestion: state.currentQuestion });
-            }
-
-            function showQuestion(questionNumber) {
-                log('info', 'Showing question', { questionNumber });
-                elements.questions.forEach(q => {
-                    if (parseInt(q.dataset.question) === questionNumber) {
-                        showElement(q);
-                    } else {
-                        hideElement(q);
-                    }
-                });
-                updateProgressDots();
-            }
-
-            // ====================================
-            // MULTI-STEP LOGIC
-            // ====================================
-            elements.firstNameInput.addEventListener('blur', function() {
-                log('info', 'First name input blur event', { value: this.value });
-                if (this.value.trim()) {
-                    state.data.firstName = this.value.trim();
-                    log('info', 'First name captured, moving to email', { firstName: state.data.firstName });
-                    state.currentQuestion = 2;
-                    showQuestion(2);
-                }
-            });
-
-            elements.emailInput.addEventListener('blur', function() {
-                log('info', 'Email input blur event', { value: this.value });
-                if (this.value.trim() && this.checkValidity()) {
-                    state.data.email = this.value.trim();
-                    log('info', 'Email captured, moving to street', { email: state.data.email });
-                    state.currentQuestion = 3;
-                    showQuestion(3);
-                } else if (!this.checkValidity()) {
-                    log('warn', 'Invalid email format', { value: this.value });
-                }
-            });
-
-            elements.streetInput.addEventListener('blur', function() {
-                log('info', 'Street input blur event', { value: this.value });
-                if (this.value.trim()) {
-                    state.data.street = this.value.trim();
-                    log('info', 'Street captured, moving to city', { street: state.data.street });
-                    state.currentQuestion = 4;
-                    showQuestion(4);
-                }
-            });
-
-            elements.cityInput.addEventListener('blur', function() {
-                log('info', 'City input blur event', { value: this.value });
-                if (this.value.trim()) {
-                    state.data.city = this.value.trim();
-                    log('info', 'City captured, moving to state', { city: state.data.city });
-                    state.currentQuestion = 5;
-                    showQuestion(5);
-                }
-            });
-
-            elements.stateInput.addEventListener('blur', function() {
-                log('info', 'State input blur event', { value: this.value });
-                if (this.value.trim()) {
-                    state.data.state = this.value.trim().toUpperCase();
-                    log('info', 'State captured, moving to ZIP', { state: state.data.state });
-                    state.currentQuestion = 6;
-                    showQuestion(6);
-                }
-            });
-
-            elements.zipInput.addEventListener('blur', function() {
-                log('info', 'ZIP input blur event', { value: this.value });
-                if (this.value.trim() && this.checkValidity()) {
-                    state.data.zip = this.value.trim();
-                    log('info', 'ZIP captured, moving to roof type', { zip: state.data.zip });
-                    state.currentQuestion = 7;
-                    showQuestion(7);
-                } else if (!this.checkValidity()) {
-                    log('warn', 'Invalid ZIP format (must be 5 digits)', { value: this.value });
-                }
-            });
-
-            // Handle option button clicks
-            document.querySelectorAll('.option-button').forEach(button => {
-                button.addEventListener('click', function() {
-                    const questionBlock = this.closest('.question-block');
-                    const questionNum = parseInt(questionBlock.dataset.question);
-                    const value = this.dataset.value;
-                    
-                    log('info', 'Option button clicked', { 
-                        question: questionNum,
-                        value: value 
-                    });
-
-                    // Remove selected class from siblings
-                    questionBlock.querySelectorAll('.option-button').forEach(btn => {
-                        btn.classList.remove('selected');
-                    });
-
-                    // Add selected class to clicked button
-                    this.classList.add('selected');
-
-                    // Store value
-                    if (questionNum === 7) {
-                        state.data.roofType = value;
-                        log('info', 'Roof type captured, moving to stories', { 
-                            roofType: state.data.roofType 
-                        });
-                        // Move to next question
-                        setTimeout(() => {
-                            state.currentQuestion = 8;
-                            showQuestion(8);
-                        }, 300);
-                    } else if (questionNum === 8) {
-                        state.data.stories = parseInt(value);
-                        log('info', 'Stories captured, form complete', { 
-                            stories: state.data.stories,
-                            allData: state.data
-                        });
-                    }
-                });
-            });
-
-            // ====================================
-            // FORM SUBMISSION
-            // ====================================
-            elements.form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                log('info', '=== FORM SUBMISSION STARTED ===', {
-                    firstName: state.data.firstName,
-                    email: state.data.email,
-                    street: state.data.street,
-                    city: state.data.city,
-                    state: state.data.state,
-                    zip: state.data.zip,
-                    roofType: state.data.roofType,
-                    stories: state.data.stories
-                });
-
-                // Validate all data is collected
-                if (!state.data.firstName || !state.data.email || !state.data.street || 
-                    !state.data.city || !state.data.state || !state.data.zip || 
-                    !state.data.roofType || !state.data.stories) {
-                    log('error', 'Form validation failed - incomplete data', state.data);
-                    alert('Please complete all questions');
-                    return;
-                }
-                
-                log('info', 'Form validation passed');
-
-                // Show loading state
-                hideElement(elements.form);
-                showElement(elements.loadingState);
-                log('info', 'UI switched to loading state');
-
-                // Prepare payload with full address
-                const fullAddress = `${state.data.street}, ${state.data.city}, ${state.data.state} ${state.data.zip}`;
-                
-                const payload = {
-                    firstName: state.data.firstName,
-                    email: state.data.email,
-                    street: state.data.street,
-                    city: state.data.city,
-                    state: state.data.state,
-                    zip: state.data.zip,
-                    address: fullAddress, // Combined for convenience
-                    roofType: state.data.roofType,
-                    stories: state.data.stories,
-                    callbackId: CONFIG.callbackId,
-                    timestamp: new Date().toISOString()
-                };
-                
-                log('info', 'Payload prepared', payload);
-                log('info', 'Sending to GHL webhook', { 
-                    url: CONFIG.ghlWebhookUrl,
-                    method: 'POST'
-                });
-
-                const startTime = Date.now();
-
-                try {
-                    // Send to GHL inbound webhook
-                    const response = await fetch(CONFIG.ghlWebhookUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    const elapsed = Date.now() - startTime;
-                    
-                    log('info', 'GHL webhook response received', {
-                        status: response.status,
-                        statusText: response.statusText,
-                        ok: response.ok,
-                        elapsed: `${elapsed}ms`,
-                        headers: {
-                            contentType: response.headers.get('content-type')
-                        }
-                    });
-
-                    if (!response.ok) {
-                        log('error', 'GHL webhook returned error status', {
-                            status: response.status,
-                            statusText: response.statusText
-                        });
-                        throw new Error(`Webhook returned ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    // Try to parse response body for additional info
-                    try {
-                        const responseData = await response.text();
-                        log('info', 'GHL webhook response body', { 
-                            body: responseData.substring(0, 200) 
-                        });
-                    } catch (e) {
-                        log('warn', 'Could not parse response body', { error: e.message });
-                    }
-
-                    // GHL webhook accepted - now we wait for callback
-                    log('info', '✓ Estimate request submitted successfully', {
-                        callbackId: CONFIG.callbackId,
-                        message: 'Awaiting callback from GHL workflow...'
-                    });
-
-                } catch (error) {
-                    log('error', '✗ Error submitting to GHL webhook', {
-                        error: error.message,
-                        stack: error.stack,
-                        url: CONFIG.ghlWebhookUrl,
-                        payload: payload
-                    });
-                    
-                    showError('Unable to submit request. Please check your connection and try again.');
-                }
-            });
-
-            // ====================================
-            // CALLBACK HANDLER (CRITICAL)
-            // ====================================
-            // This function receives the response from GHL outbound webhook
-            // GHL must POST to: window.location.origin + '/api/estimate-callback'
-            // OR you can use a serverless function that calls this JS function
-            
-            window.handleEstimateCallback = function(response) {
-                log('info', '=== CALLBACK RECEIVED ===', {
-                    response: response,
-                    callbackId: response?.callbackId || 'unknown',
-                    status: response?.status || 'unknown',
-                    receivedAt: new Date().toISOString()
-                });
-                
-                // Hide loading
-                hideElement(elements.loadingState);
-                log('info', 'Loading state hidden');
-                
-                // Show result
-                showElement(elements.resultState);
-                log('info', 'Result state shown');
-
-                if (response.status === 'success') {
-                    log('info', '✓ Success response received', {
-                        totalEstimate: response.totalEstimate
-                    });
-                    displaySuccess(response.totalEstimate);
-                } else {
-                    log('warn', 'Error response received', {
-                        message: response.message || 'No message provided'
-                    });
-                    displayError(response.message || 'Unable to calculate estimate at this time.');
-                }
-            };
-
-            // ====================================
-            // POLLING ALTERNATIVE (OPTIONAL)
-            // ====================================
-            // If direct callback isn't possible, you can poll a status endpoint
-            // Uncomment this if you need polling instead of webhook callback
-            /*
-            async function pollForResult() {
-                const maxAttempts = 20; // 20 seconds max
-                let attempts = 0;
-
-                const pollInterval = setInterval(async () => {
-                    attempts++;
-
-                    try {
-                        const response = await fetch(
-                            `https://YOUR-STATUS-ENDPOINT.com/status/${CONFIG.callbackId}`
-                        );
-                        const data = await response.json();
-
-                        if (data.status === 'completed') {
-                            clearInterval(pollInterval);
-                            window.handleEstimateCallback(data.result);
-                        } else if (data.status === 'error' || attempts >= maxAttempts) {
-                            clearInterval(pollInterval);
-                            window.handleEstimateCallback({
-                                status: 'error',
-                                message: data.message || 'Request timed out'
-                            });
-                        }
-                    } catch (error) {
-                        console.error('Polling error:', error);
-                    }
-                }, 1000);
-            }
-            */
-
-            // ====================================
-            // DISPLAY FUNCTIONS
-            // ====================================
-            function displaySuccess(totalEstimate) {
-                log('info', 'Displaying success result', { totalEstimate });
-                
-                const formattedPrice = new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                }).format(totalEstimate);
-                
-                log('info', 'Price formatted', { 
-                    original: totalEstimate,
-                    formatted: formattedPrice
-                });
-
-                elements.resultState.innerHTML = `
-                    <div class="success-icon">✓</div>
-                    <h2 class="result-title">Your Instant Estimate</h2>
-                    <div class="estimate-price">${formattedPrice}</div>
-                    <p class="result-message">
-                        This estimate is based on the information provided. 
-                        A final quote will be provided after an inspection.
-                    </p>
-                    <button class="retry-button" onclick="location.reload()">
-                        Get Another Estimate
-                    </button>
-                `;
-                
-                log('info', '✓ Success UI rendered');
-            }
-
-            function displayError(message) {
-                log('warn', 'Displaying error result', { message });
-                
-                elements.resultState.innerHTML = `
-                    <div class="error-icon">✕</div>
-                    <h2 class="result-title">Unable to Generate Estimate</h2>
-                    <p class="result-message">${message}</p>
-                    <button class="retry-button" onclick="location.reload()">
-                        Try Again
-                    </button>
-                `;
-                
-                log('info', 'Error UI rendered');
-            }
-
-            function showError(message) {
-                log('error', 'Showing error to user', { message });
-                hideElement(elements.loadingState);
-                showElement(elements.resultState);
-                displayError(message);
-            }
-
-            // ====================================
-            // MESSAGE LISTENER FOR CALLBACKS
-            // ====================================
-            // This allows GHL to send results via postMessage if in iframe
-            window.addEventListener('message', function(event) {
-                log('info', 'postMessage received', {
-                    origin: event.origin,
-                    type: event.data?.type,
-                    callbackId: event.data?.callbackId,
-                    hasResult: !!event.data?.result
-                });
-                
-                // IMPORTANT: Validate origin in production
-                // if (event.origin !== 'https://your-ghl-domain.com') {
-                //     log('warn', 'postMessage rejected - invalid origin', { origin: event.origin });
-                //     return;
-                // }
-
-                if (event.data.type === 'ESTIMATE_RESULT' && 
-                    event.data.callbackId === CONFIG.callbackId) {
-                    log('info', '✓ Valid ESTIMATE_RESULT message matched callbackId', {
-                        callbackId: event.data.callbackId
-                    });
-                    window.handleEstimateCallback(event.data.result);
-                } else {
-                    log('warn', 'postMessage ignored - type or callbackId mismatch', {
-                        expectedCallbackId: CONFIG.callbackId,
-                        receivedCallbackId: event.data.callbackId,
-                        type: event.data.type
-                    });
-                }
-            });
-
-            // ====================================
-            // INITIALIZATION
-            // ====================================
-            function initializeForm() {
-                // Hide all questions except the first one
-                elements.questions.forEach((q, index) => {
-                    if (index === 0) {
-                        q.classList.remove('hidden');
-                    } else {
-                        q.classList.add('hidden');
-                    }
-                });
-                
-                // Set first dot as active
-                elements.progressDots.forEach((dot, index) => {
-                    if (index === 0) {
-                        dot.classList.add('active');
-                    } else {
-                        dot.classList.remove('active');
-                    }
-                });
-                
-                log('info', 'Form initialized - showing only question 1');
-            }
-
-            // Initialize immediately
-            initializeForm();
-
-            log('info', '=== ESTIMATE COMPONENT INITIALIZED ===', {
-                callbackId: CONFIG.callbackId,
-                ghlWebhookUrl: CONFIG.ghlWebhookUrl,
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                windowLocation: window.location.href
-            });
-
-        })();
-    </script>
+      loading.innerHTML = "Estimate sent. Check your screen…";
+    };
+  </script>
 </body>
-              </html>
+</html>
