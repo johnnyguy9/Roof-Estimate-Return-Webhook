@@ -112,7 +112,7 @@ const data={
   firstName:'',
   email:'',
   address:'',
-  roof_type:'',
+  roofType:'',
   stories:''
 };
 
@@ -130,7 +130,7 @@ function next(){
     if(!data.address) return alert('Please select an address from the dropdown');
   }
   if(step===3) {
-    if(!data.roof_type) return alert('Please select a roof type');
+    if(!data.roofType) return alert('Please select a roof type');
   }
   
   steps[step].classList.remove('active');
@@ -141,7 +141,7 @@ function next(){
 function pick(btn,val){
   btn.parentElement.querySelectorAll('.btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
-  if(step===3) data.roof_type=val;
+  if(step===3) data.roofType=val;
   if(step===4) data.stories=val;
 }
 
@@ -160,7 +160,7 @@ async function submitForm(){
     firstName: data.firstName,
     email: data.email,
     address: data.address,
-    roof_type: data.roof_type,
+    roofType: data.roofType,
     stories: data.stories,
     callbackId: callbackId,
     timestamp: new Date().toISOString()
