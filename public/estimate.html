@@ -1,242 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Instant Roof Estimate</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Instant Roof Estimate</title>
 
-  <!-- Google Places API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCm6Cw8lXx4as9YB57j-XmqYLGfSPEUW9Q&libraries=places"></script>
+<!-- Google Places API (CORRECT) -->
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCm6Cw8lXx4as9YB57j-XmqYLGfSPEUW9Q&libraries=places&callback=initAutocomplete"
+  async
+  defer
+></script>
 
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
+* { box-sizing: border-box; }
 
-    body {
-      background: #0b1220;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
+body {
+  margin: 0;
+  background: #0b1220;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+}
 
-    .card {
-      width: 100%;
-      max-width: 520px;
-      background: #111a2c;
-      border-radius: 16px;
-      padding: 40px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.5);
-      border: 1px solid #1f2b44;
-    }
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: #111a2c;
+  border-radius: 16px;
+  padding: 32px 32px 24px;
+  border: 1px solid #1f2b44;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  margin-bottom: 16px;
+}
 
-    h1 {
-      text-align: center;
-      margin-bottom: 6px;
-      font-size: 26px;
-    }
+h1 {
+  margin: 0 0 6px;
+  text-align: center;
+}
 
-    .subtitle {
-      text-align: center;
-      color: #9bb3d3;
-      margin-bottom: 24px;
-    }
+p.sub {
+  margin: 0 0 24px;
+  text-align: center;
+  color: #9fb3d1;
+}
 
-    .progress {
-      display: flex;
-      justify-content: center;
-      gap: 6px;
-      margin-bottom: 28px;
-    }
+.progress {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 24px;
+}
 
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 6px;
-      background: #2a3b5f;
-      transition: all .3s;
-    }
+.dot {
+  height: 6px;
+  width: 18px;
+  background: #24314f;
+  border-radius: 3px;
+}
 
-    .dot.active {
-      width: 22px;
-      background: #4fc3ff;
-      box-shadow: 0 0 10px rgba(79,195,255,.7);
-    }
+.dot.active { background: #4cc9f0; }
 
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: #cfe2ff;
-    }
+.field {
+  margin-bottom: 18px;
+}
 
-    input {
-      width: 100%;
-      padding: 14px;
-      border-radius: 10px;
-      border: 1px solid #2c3d63;
-      background: #0b1220;
-      color: #fff;
-      font-size: 15px;
-    }
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
 
-    input::placeholder { color: #7f95b8; }
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #2a3a5c;
+  background: #0b1220;
+  color: #fff;
+  font-size: 15px;
+}
 
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
 
-    .btn-option {
-      padding: 14px;
-      background: #0b1220;
-      border: 1px solid #2c3d63;
-      border-radius: 10px;
-      color: #fff;
-      cursor: pointer;
-    }
+.btn {
+  padding: 12px;
+  border-radius: 8px;
+  background: #0b1220;
+  border: 1px solid #2a3a5c;
+  color: #fff;
+  cursor: pointer;
+}
 
-    .btn-option.selected {
-      background: #4fc3ff;
-      color: #000;
-      font-weight: 600;
-    }
+.btn.selected {
+  background: #4cc9f0;
+  color: #000;
+}
 
-    .next-btn {
-      width: 100%;
-      margin-top: 26px;
-      padding: 16px;
-      background: linear-gradient(135deg,#4fc3ff,#1b9cff);
-      border: none;
-      border-radius: 12px;
-      color: #000;
-      font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-    }
+.main-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: #4cc9f0;
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+}
 
-    .step { display: none; }
-    .step.active { display: block; }
-
-    /* GOOGLE PLACES FIXES */
-    .pac-container {
-      z-index: 999999 !important;
-      background: #111a2c;
-      border-radius: 10px;
-      border: 1px solid #2c3d63;
-    }
-
-    .pac-item {
-      color: #fff;
-      padding: 8px 12px;
-    }
-
-    .pac-item:hover {
-      background: #1b2a4a;
-    }
-  </style>
+.hidden { display: none; }
+</style>
 </head>
 
 <body>
-  <div class="card">
-    <h1>Instant Roof Estimate</h1>
-    <div class="subtitle">Answer a few quick questions</div>
 
-    <div class="progress" id="progress"></div>
+<div class="card">
+  <h1>Instant Roof Estimate</h1>
+  <p class="sub">Answer a few quick questions</p>
 
-    <!-- STEP 1 -->
-    <div class="step active">
-      <label>First Name</label>
-      <input id="firstName" />
-    </div>
-
-    <!-- STEP 2 -->
-    <div class="step">
-      <label>Email</label>
-      <input id="email" type="email" />
-    </div>
-
-    <!-- STEP 3 -->
-    <div class="step">
-      <label>Property Address</label>
-      <input id="address" autocomplete="new-password" placeholder="Start typing address..." />
-    </div>
-
-    <!-- STEP 4 -->
-    <div class="step">
-      <label>Roof Type</label>
-      <div class="buttons">
-        <button class="btn-option" data-roof="Asphalt">Asphalt</button>
-        <button class="btn-option" data-roof="Metal">Metal</button>
-        <button class="btn-option" data-roof="Tile">Tile</button>
-      </div>
-    </div>
-
-    <!-- STEP 5 -->
-    <div class="step">
-      <label>Stories</label>
-      <div class="buttons">
-        <button class="btn-option" data-stories="1">1 Story</button>
-        <button class="btn-option" data-stories="2">2 Stories</button>
-        <button class="btn-option" data-stories="3">3+ Stories</button>
-      </div>
-    </div>
-
-    <button class="next-btn" id="nextBtn">Next</button>
+  <div class="progress">
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
   </div>
 
+  <form id="form">
+
+    <div class="step">
+      <div class="field">
+        <label>First Name</label>
+        <input id="firstName" required />
+      </div>
+    </div>
+
+    <div class="step hidden">
+      <div class="field">
+        <label>Email</label>
+        <input id="email" type="email" required />
+      </div>
+    </div>
+
+    <div class="step hidden">
+      <div class="field">
+        <label>Property Address</label>
+        <input id="address" placeholder="Start typing address..." />
+      </div>
+    </div>
+
+    <div class="step hidden">
+      <label>Roof Type</label>
+      <div class="buttons">
+        <button type="button" class="btn" data-roof="Asphalt">Asphalt</button>
+        <button type="button" class="btn" data-roof="Metal">Metal</button>
+        <button type="button" class="btn" data-roof="Tile">Tile</button>
+      </div>
+    </div>
+
+    <div class="step hidden">
+      <label>Stories</label>
+      <div class="buttons">
+        <button type="button" class="btn" data-stories="1">1 Story</button>
+        <button type="button" class="btn" data-stories="2">2 Stories</button>
+        <button type="button" class="btn" data-stories="3">3+ Stories</button>
+      </div>
+    </div>
+
+    <button class="main-btn" id="nextBtn">Next</button>
+
+  </form>
+</div>
+
 <script>
-const steps = document.querySelectorAll(".step");
-const progress = document.getElementById("progress");
-const nextBtn = document.getElementById("nextBtn");
-
 let step = 0;
-let data = {};
+let addressData = null;
+let roofType = null;
+let stories = null;
+let autocomplete;
 
-steps.forEach((_, i) => {
-  const d = document.createElement("div");
-  d.className = "dot" + (i === 0 ? " active" : "");
-  progress.appendChild(d);
-});
+function initAutocomplete() {
+  autocomplete = new google.maps.places.Autocomplete(
+    document.getElementById("address"),
+    { types: ["address"], componentRestrictions: { country: "us" } }
+  );
 
-function updateUI() {
-  steps.forEach((s, i) => s.classList.toggle("active", i === step));
-  document.querySelectorAll(".dot").forEach((d, i) => d.classList.toggle("active", i <= step));
-  nextBtn.textContent = step === steps.length - 1 ? "Get My Estimate" : "Next";
+  autocomplete.addListener("place_changed", () => {
+    const place = autocomplete.getPlace();
+    if (!place.address_components) return;
+    addressData = place.formatted_address;
+  });
 }
 
-nextBtn.onclick = async () => {
-  if (step === 0) data.firstName = firstName.value;
-  if (step === 1) data.email = email.value;
+document.getElementById("address").addEventListener("input", () => {
+  addressData = null;
+});
 
-  if (step === 2 && !data.address) {
-    alert("Select address from dropdown");
+const steps = document.querySelectorAll(".step");
+const dots = document.querySelectorAll(".dot");
+const btn = document.getElementById("nextBtn");
+
+btn.onclick = e => {
+  e.preventDefault();
+
+  if (step === 2 && !addressData) {
+    alert("Please select an address from the dropdown");
     return;
   }
 
-  if (step === steps.length - 1) {
-    await fetch("https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/EO7CUMjucJlR9uy7SuDa", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
-    nextBtn.textContent = "Submitted ✓";
-    nextBtn.disabled = true;
-    return;
-  }
+  if (step === 3 && !roofType) return;
+  if (step === 4 && !stories) return;
 
-  step++;
-  updateUI();
+  if (step < steps.length - 1) {
+    steps[step].classList.add("hidden");
+    dots[step].classList.remove("active");
+    step++;
+    steps[step].classList.remove("hidden");
+    dots[step].classList.add("active");
+    if (step === steps.length - 1) btn.textContent = "Get My Estimate";
+  }
 };
 
-/* Roof + Stories */
 document.querySelectorAll("[data-roof]").forEach(b =>
   b.onclick = () => {
     document.querySelectorAll("[data-roof]").forEach(x => x.classList.remove("selected"));
     b.classList.add("selected");
-    data.roof_type = b.dataset.roof;
+    roofType = b.dataset.roof;
   }
 );
 
@@ -244,35 +241,10 @@ document.querySelectorAll("[data-stories]").forEach(b =>
   b.onclick = () => {
     document.querySelectorAll("[data-stories]").forEach(x => x.classList.remove("selected"));
     b.classList.add("selected");
-    data.stories = b.dataset.stories;
+    stories = b.dataset.stories;
   }
 );
-
-/* Google Places */
-const autocomplete = new google.maps.places.Autocomplete(address, {
-  types: ["address"],
-  componentRestrictions: { country: "us" }
-});
-
-autocomplete.addListener("place_changed", () => {
-  const p = autocomplete.getPlace();
-  data.address = p.formatted_address;
-
-  p.address_components.forEach(c => {
-    if (c.types.includes("locality")) data.city = c.long_name;
-    if (c.types.includes("administrative_area_level_1")) data.state = c.short_name;
-    if (c.types.includes("postal_code")) data.zip = c.long_name;
-  });
-});
-
-/* ENTER selects first suggestion */
-address.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    const first = document.querySelector(".pac-item");
-    if (first) first.click();
-  }
-});
 </script>
+
 </body>
 </html>
