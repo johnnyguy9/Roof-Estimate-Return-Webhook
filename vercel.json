@@ -16,8 +16,38 @@
         {
           "key": "Access-Control-Allow-Methods",
           "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
         }
       ]
     }
   ]
 }
+```
+
+**Key change:** Remove any `outputDirectory` or `buildCommand` settings. For API-only projects, Vercel doesn't need an output directory.
+
+---
+
+## 🎯 OR: Even Simpler - Delete vercel.json
+
+If the above doesn't work, you can actually **delete `vercel.json` entirely**. Vercel will auto-detect your API routes and work fine without it.
+
+1. Go to your repo
+2. Click `vercel.json`
+3. Click the trash icon (Delete file)
+4. Commit the deletion
+
+Vercel will auto-redeploy and should work!
+
+---
+
+## ✅ Expected Result
+
+After the fix, you should see:
+```
+✓ Building...
+✓ Serverless Function compiled: api/estimate-callback.ts
+✓ Ready! Deployed to production.
