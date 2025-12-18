@@ -1,250 +1,308 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Instant Roof Estimate</title>
+  <meta charset="UTF-8" />
+  <title>Instant Roof Estimate</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Google Places API (CORRECT) -->
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCm6Cw8lXx4as9YB57j-XmqYLGfSPEUW9Q&libraries=places&callback=initAutocomplete"
-  async
-  defer
-></script>
+  <!-- Google Maps JS + Places -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD5W9aPwPQQPFXHf4uzYeSAmC8nC15wXsM&libraries=places"
+    defer
+  ></script>
 
-<style>
-* { box-sizing: border-box; }
+  <style>
+    * { box-sizing: border-box; }
 
-body {
-  margin: 0;
-  background: #0b1220;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px 20px;
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px;
+      background: #0a0e14;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #fff;
+    }
 
-.card {
-  width: 100%;
-  max-width: 520px;
-  background: #111a2c;
-  border-radius: 16px;
-  padding: 32px 32px 24px;
-  border: 1px solid #1f2b44;
-  box-shadow: 0 20px 60px rgba(0,0,0,.5);
-  margin-bottom: 16px;
-}
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: linear-gradient(180deg, #0f1b2d, #0c1624);
+      border-radius: 16px;
+      padding: 28px 28px 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.45);
+      border: 1px solid #243246;
+    }
 
-h1 {
-  margin: 0 0 6px;
-  text-align: center;
-}
+    h1 {
+      margin: 0 0 6px;
+      font-size: 26px;
+      text-align: center;
+    }
 
-p.sub {
-  margin: 0 0 24px;
-  text-align: center;
-  color: #9fb3d1;
-}
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #9fb3c8;
+      margin-bottom: 18px;
+    }
 
-.progress {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin-bottom: 24px;
-}
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 22px;
+    }
 
-.dot {
-  height: 6px;
-  width: 18px;
-  background: #24314f;
-  border-radius: 3px;
-}
+    .dot {
+      height: 6px;
+      width: 6px;
+      border-radius: 4px;
+      background: #2c3e55;
+      transition: all .25s ease;
+    }
 
-.dot.active { background: #4cc9f0; }
+    .dot.active {
+      width: 22px;
+      background: #3bbcff;
+    }
 
-.field {
-  margin-bottom: 18px;
-}
+    .step {
+      display: none;
+    }
 
-label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 14px;
-}
+    .step.active {
+      display: block;
+    }
 
-input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #2a3a5c;
-  background: #0b1220;
-  color: #fff;
-  font-size: 15px;
-}
+    label {
+      font-size: 14px;
+      margin-bottom: 8px;
+      display: block;
+    }
 
-.buttons {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
+    input {
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #2c3e55;
+      background: #0a0e14;
+      color: #fff;
+      outline: none;
+    }
 
-.btn {
-  padding: 12px;
-  border-radius: 8px;
-  background: #0b1220;
-  border: 1px solid #2a3a5c;
-  color: #fff;
-  cursor: pointer;
-}
+    input:focus {
+      border-color: #3bbcff;
+      box-shadow: 0 0 0 3px rgba(59,188,255,.15);
+    }
 
-.btn.selected {
-  background: #4cc9f0;
-  color: #000;
-}
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 6px;
+    }
 
-.main-btn {
-  width: 100%;
-  margin-top: 12px;
-  padding: 14px;
-  border-radius: 10px;
-  border: none;
-  background: #4cc9f0;
-  color: #000;
-  font-weight: 600;
-  cursor: pointer;
-}
+    .btn {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #2c3e55;
+      background: #0a0e14;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
 
-.hidden { display: none; }
-</style>
+    .btn.selected {
+      background: #3bbcff;
+      border-color: #3bbcff;
+    }
+
+    .primary {
+      margin-top: 18px;
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(90deg, #3bbcff, #1f8fff);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .primary:hover {
+      opacity: .92;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 0;
+      display: none;
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 4px solid #2c3e55;
+      border-top-color: #3bbcff;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .result {
+      display: none;
+      text-align: center;
+    }
+
+    .price {
+      font-size: 44px;
+      color: #3bbcff;
+      margin: 16px 0;
+      font-weight: 700;
+    }
+  </style>
 </head>
 
 <body>
+  <div class="card">
 
-<div class="card">
-  <h1>Instant Roof Estimate</h1>
-  <p class="sub">Answer a few quick questions</p>
+    <h1>Instant Roof Estimate</h1>
+    <div class="subtitle">Answer a few quick questions</div>
 
-  <div class="progress">
-    <div class="dot active"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-  </div>
+    <div class="dots">
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
 
-  <form id="form">
+    <!-- STEP 1 -->
+    <div class="step active">
+      <label>First Name</label>
+      <input id="firstName" />
+      <button class="primary" onclick="next()">Next</button>
+    </div>
 
+    <!-- STEP 2 -->
     <div class="step">
-      <div class="field">
-        <label>First Name</label>
-        <input id="firstName" required />
-      </div>
+      <label>Email</label>
+      <input id="email" type="email" />
+      <button class="primary" onclick="next()">Next</button>
     </div>
 
-    <div class="step hidden">
-      <div class="field">
-        <label>Email</label>
-        <input id="email" type="email" required />
-      </div>
+    <!-- STEP 3 -->
+    <div class="step">
+      <label>Property Address</label>
+      <input id="address" placeholder="Start typing address..." />
+      <button class="primary" onclick="next()">Next</button>
     </div>
 
-    <div class="step hidden">
-      <div class="field">
-        <label>Property Address</label>
-        <input id="address" placeholder="Start typing address..." />
-      </div>
-    </div>
-
-    <div class="step hidden">
+    <!-- STEP 4 -->
+    <div class="step">
       <label>Roof Type</label>
       <div class="buttons">
-        <button type="button" class="btn" data-roof="Asphalt">Asphalt</button>
-        <button type="button" class="btn" data-roof="Metal">Metal</button>
-        <button type="button" class="btn" data-roof="Tile">Tile</button>
+        <button class="btn" onclick="pick(this,'Asphalt')">Asphalt</button>
+        <button class="btn" onclick="pick(this,'Metal')">Metal</button>
+        <button class="btn" onclick="pick(this,'Tile')">Tile</button>
       </div>
+      <button class="primary" onclick="next()">Next</button>
     </div>
 
-    <div class="step hidden">
+    <!-- STEP 5 -->
+    <div class="step">
       <label>Stories</label>
       <div class="buttons">
-        <button type="button" class="btn" data-stories="1">1 Story</button>
-        <button type="button" class="btn" data-stories="2">2 Stories</button>
-        <button type="button" class="btn" data-stories="3">3+ Stories</button>
+        <button class="btn" onclick="pick(this,1)">1 Story</button>
+        <button class="btn" onclick="pick(this,2)">2 Stories</button>
+        <button class="btn" onclick="pick(this,3)">3+ Stories</button>
       </div>
+      <button class="primary" onclick="submitForm()">Get My Estimate</button>
     </div>
 
-    <button class="main-btn" id="nextBtn">Next</button>
+    <div class="loading">
+      <div class="spinner"></div>
+      Calculating your estimate…
+    </div>
 
-  </form>
-</div>
+    <div class="result">
+      <h2>Your Instant Estimate</h2>
+      <div class="price" id="price">$0</div>
+    </div>
+
+  </div>
 
 <script>
-let step = 0;
-let addressData = null;
-let roofType = null;
-let stories = null;
-let autocomplete;
+  let step = 0;
+  const steps = document.querySelectorAll('.step');
+  const dots = document.querySelectorAll('.dot');
 
-function initAutocomplete() {
-  autocomplete = new google.maps.places.Autocomplete(
-    document.getElementById("address"),
-    { types: ["address"], componentRestrictions: { country: "us" } }
-  );
+  const data = {
+    firstName: '',
+    email: '',
+    address: '',
+    roof_type: '',
+    stories: ''
+  };
 
-  autocomplete.addListener("place_changed", () => {
-    const place = autocomplete.getPlace();
-    if (!place.address_components) return;
-    addressData = place.formatted_address;
-  });
-}
-
-document.getElementById("address").addEventListener("input", () => {
-  addressData = null;
-});
-
-const steps = document.querySelectorAll(".step");
-const dots = document.querySelectorAll(".dot");
-const btn = document.getElementById("nextBtn");
-
-btn.onclick = e => {
-  e.preventDefault();
-
-  if (step === 2 && !addressData) {
-    alert("Please select an address from the dropdown");
-    return;
+  function updateUI() {
+    steps.forEach((s,i)=>s.classList.toggle('active',i===step));
+    dots.forEach((d,i)=>d.classList.toggle('active',i<=step));
   }
 
-  if (step === 3 && !roofType) return;
-  if (step === 4 && !stories) return;
-
-  if (step < steps.length - 1) {
-    steps[step].classList.add("hidden");
-    dots[step].classList.remove("active");
+  function next() {
+    if (step === 0) data.firstName = firstName.value.trim();
+    if (step === 1) data.email = email.value.trim();
+    if (step === 2) data.address = address.value.trim();
+    if (!Object.values(data)[step]) return alert('Please complete this step');
     step++;
-    steps[step].classList.remove("hidden");
-    dots[step].classList.add("active");
-    if (step === steps.length - 1) btn.textContent = "Get My Estimate";
+    updateUI();
   }
-};
 
-document.querySelectorAll("[data-roof]").forEach(b =>
-  b.onclick = () => {
-    document.querySelectorAll("[data-roof]").forEach(x => x.classList.remove("selected"));
-    b.classList.add("selected");
-    roofType = b.dataset.roof;
+  function pick(btn,value) {
+    btn.parentElement.querySelectorAll('.btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    if (step===3) data.roof_type=value;
+    if (step===4) data.stories=value;
   }
-);
 
-document.querySelectorAll("[data-stories]").forEach(b =>
-  b.onclick = () => {
-    document.querySelectorAll("[data-stories]").forEach(x => x.classList.remove("selected"));
-    b.classList.add("selected");
-    stories = b.dataset.stories;
+  function submitForm() {
+    document.querySelector('.loading').style.display='block';
+    steps.forEach(s=>s.style.display='none');
+
+    fetch('YOUR_GHL_INBOUND_WEBHOOK_URL', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+
+    setTimeout(()=>{
+      document.querySelector('.loading').style.display='none';
+      document.querySelector('.result').style.display='block';
+      document.getElementById('price').innerText='$12,800';
+    },2500);
   }
-);
+
+  // Google Places Autocomplete
+  window.addEventListener('load',()=>{
+    const ac = new google.maps.places.Autocomplete(
+      document.getElementById('address'),
+      { types:['address'], componentRestrictions:{country:'us'} }
+    );
+
+    ac.addListener('place_changed',()=>{
+      const p = ac.getPlace();
+      data.address = p.formatted_address || '';
+    });
+  });
 </script>
-
 </body>
 </html>
