@@ -148,7 +148,8 @@ function pick(btn,val){
 async function submitForm(){
   if(!data.stories) return alert('Please select number of stories');
   
-  console.log('Submitting data:', data);
+  console.log('=== FORM SUBMISSION DEBUG ===');
+  console.log('Step 1: Current data object:', JSON.stringify(data, null, 2));
   
   document.querySelector('.loading').style.display='block';
   steps.forEach(s=>s.style.display='none');
@@ -166,9 +167,13 @@ async function submitForm(){
     timestamp: new Date().toISOString()
   };
 
-  console.log('Sending payload:', payload);
+  console.log('Step 2: Payload created:', JSON.stringify(payload, null, 2));
+  console.log('Step 3: Payload as string:', JSON.stringify(payload));
+  console.log('Step 4: Webhook URL:', 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/EO7CUMjucJlR9uy7SuDa');
 
   try {
+    console.log('Step 5: Sending fetch request...');
+    
     const res = await fetch(
       'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/EO7CUMjucJlR9uy7SuDa',
       {
@@ -178,9 +183,13 @@ async function submitForm(){
       }
     );
 
-    console.log('Response status:', res.status);
+    console.log('Step 6: Response received!');
+    console.log('  - Status:', res.status);
+    console.log('  - Status Text:', res.statusText);
+    console.log('  - Headers:', Object.fromEntries(res.headers.entries()));
+    
     const responseText = await res.text();
-    console.log('Response body:', responseText);
+    console.log('Step 7: Response body:', responseText);
 
     if(!res.ok) {
       throw new Error('Webhook request failed: ' + res.status);
@@ -189,9 +198,11 @@ async function submitForm(){
     // Show loading message while waiting for callback
     document.querySelector('.loading').innerHTML = 'Calculating your estimate…<br><small style="margin-top:8px;display:block;color:#9fb3c8;">This may take 30-60 seconds</small>';
     
+    console.log('Step 8: Request successful, waiting for callback...');
+    
     // Set up callback listener
     window.handleEstimateCallback = function(result) {
-      console.log('Callback received:', result);
+      console.log('Step 9: Callback received!', result);
       document.querySelector('.loading').style.display='none';
       document.querySelector('.result').style.display='block';
       document.getElementById('price').innerText = 
@@ -199,9 +210,10 @@ async function submitForm(){
     };
 
   } catch(error) {
-    console.error('Error:', error);
+    console.error('❌ ERROR in submitForm:', error);
+    console.error('Error stack:', error.stack);
     document.querySelector('.loading').style.display='none';
-    alert('Unable to submit request. Please try again.');
+    alert('Unable to submit request. Please try again. Check console for details.');
     steps[4].style.display='block';
     steps[4].classList.add('active');
   }
