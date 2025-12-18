@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "Estimate callback endpoints",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "tsc"
+    "build": "echo 'Serverless functions - no build needed'"
   },
   "dependencies": {},
   "devDependencies": {
