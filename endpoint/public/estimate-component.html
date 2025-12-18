@@ -37,12 +37,15 @@ input{
   background:#0a0e14;border:1px solid #2c3e55;color:#fff;
 }
 .buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.btn{padding:12px;border-radius:8px;background:#0a0e14;border:1px solid #2c3e55;color:#fff;}
+.btn{
+  padding:12px;border-radius:8px;background:#0a0e14;
+  border:1px solid #2c3e55;color:#fff;cursor:pointer;
+}
 .btn.selected{background:#3bbcff;border-color:#3bbcff;}
 .primary{
   margin-top:16px;width:100%;padding:14px;
   background:linear-gradient(90deg,#3bbcff,#1f8fff);
-  border:none;border-radius:8px;color:#fff;font-size:16px;
+  border:none;border-radius:8px;color:#fff;font-size:16px;cursor:pointer;
 }
 .loading,.result{text-align:center;display:none;}
 .price{font-size:42px;color:#3bbcff;margin-top:16px;}
@@ -114,10 +117,22 @@ const data={
 };
 
 function next(){
-  if(step===0) data.firstName=firstName.value.trim();
-  if(step===1) data.email=email.value.trim();
-  if(step===2) data.address=address.value.trim();
-  if(!Object.values(data)[step]) return alert('Complete this step');
+  if(step===0) {
+    data.firstName=firstName.value.trim();
+    if(!data.firstName) return alert('Please enter your first name');
+  }
+  if(step===1) {
+    data.email=email.value.trim();
+    if(!data.email) return alert('Please enter your email');
+  }
+  if(step===2) {
+    data.address=address.value.trim();
+    if(!data.address) return alert('Please select an address from the dropdown');
+  }
+  if(step===3) {
+    if(!data.roof_type) return alert('Please select a roof type');
+  }
+  
   steps[step].classList.remove('active');
   step++;
   steps[step].classList.add('active');
@@ -131,24 +146,65 @@ function pick(btn,val){
 }
 
 async function submitForm(){
+  if(!data.stories) return alert('Please select number of stories');
+  
+  console.log('Submitting data:', data);
+  
   document.querySelector('.loading').style.display='block';
   steps.forEach(s=>s.style.display='none');
 
-  const res = await fetch(
-    'https://services.leadconnectorhq.com/hooks/FDGlykNntzs46TT1VA7/webhook-trigger/E07CUMjucJIR9uy7SuDa',
-    {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(data)
+  // Generate unique callback ID
+  const callbackId = 'est_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  
+  const payload = {
+    firstName: data.firstName,
+    email: data.email,
+    address: data.address,
+    roof_type: data.roof_type,
+    stories: data.stories,
+    callbackId: callbackId,
+    timestamp: new Date().toISOString()
+  };
+
+  console.log('Sending payload:', payload);
+
+  try {
+    const res = await fetch(
+      'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/EO7CUMjucJlR9uy7SuDa',
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      }
+    );
+
+    console.log('Response status:', res.status);
+    const responseText = await res.text();
+    console.log('Response body:', responseText);
+
+    if(!res.ok) {
+      throw new Error('Webhook request failed: ' + res.status);
     }
-  );
 
-  const json = await res.json();
+    // Show loading message while waiting for callback
+    document.querySelector('.loading').innerHTML = 'Calculating your estimate…<br><small style="margin-top:8px;display:block;color:#9fb3c8;">This may take 30-60 seconds</small>';
+    
+    // Set up callback listener
+    window.handleEstimateCallback = function(result) {
+      console.log('Callback received:', result);
+      document.querySelector('.loading').style.display='none';
+      document.querySelector('.result').style.display='block';
+      document.getElementById('price').innerText = 
+        `$${Number(result.totalEstimate).toLocaleString()}`;
+    };
 
-  document.querySelector('.loading').style.display='none';
-  document.querySelector('.result').style.display='block';
-  document.getElementById('price').innerText =
-    `$${Number(json.totalEstimate || json.totalPrice).toLocaleString()}`;
+  } catch(error) {
+    console.error('Error:', error);
+    document.querySelector('.loading').style.display='none';
+    alert('Unable to submit request. Please try again.');
+    steps[4].style.display='block';
+    steps[4].classList.add('active');
+  }
 }
 
 window.addEventListener('load',()=>{
@@ -159,6 +215,7 @@ window.addEventListener('load',()=>{
   ac.addListener('place_changed',()=>{
     const p=ac.getPlace();
     data.address=p.formatted_address||'';
+    console.log('Address selected:', data.address);
   });
 });
 </script>
