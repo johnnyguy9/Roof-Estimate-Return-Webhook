@@ -1,1 +1,14 @@
-
+{
+  "name": "estimate-callback-api",
+  "version": "1.0.0",
+  "description": "Estimate callback endpoints",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
