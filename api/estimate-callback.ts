@@ -109,13 +109,17 @@ export default async function handler(req, res) {
     log('info', 'Parsing request body', { requestId });
     
     // Extract and validate payload
-    const { callbackId, status, totalEstimate, message } = req.body;
+    // GHL sends "Total Estimate $" as the field name, not "totalEstimate"
+    const { callbackId, status } = req.body;
+    const totalEstimate = req.body.totalEstimate || req.body['Total Estimate $'] || req.body['total_estimate_'];
+    const message = req.body.message;
     
     log('info', 'Request body parsed', { 
       requestId,
       callbackId,
       status,
       totalEstimate,
+      totalEstimateRaw: req.body['Total Estimate $'],
       hasMessage: !!message,
       bodyKeys: Object.keys(req.body)
     });
