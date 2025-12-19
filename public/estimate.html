@@ -279,7 +279,7 @@ async function submitForm() {
   if (!data.of_stories) return alert('Please select number of stories');
   
   console.log('=== FORM SUBMISSION ===');
-  console.log('Data:', JSON.stringify(data, null, 2));
+  console.log('Step 1: Form data collected:', JSON.stringify(data, null, 2));
   
   // Hide form, show loading
   steps.forEach(s => s.style.display = 'none');
@@ -287,7 +287,9 @@ async function submitForm() {
 
   // Generate unique callback ID
   const callbackId = 'est_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  console.log('Step 2: Generated callbackId:', callbackId);
   
+  // IMPORTANT: Send fields at ROOT level, not nested in "data"
   const payload = {
     first_name: data.first_name,
     email: data.email,
@@ -298,10 +300,12 @@ async function submitForm() {
     timestamp: new Date().toISOString()
   };
 
-  console.log('Payload:', JSON.stringify(payload, null, 2));
-  console.log('Sending to:', 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c');
+  console.log('Step 3: Payload created (root level):', JSON.stringify(payload, null, 2));
+  console.log('Step 4: Webhook URL:', 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c');
 
   try {
+    console.log('Step 5: Sending POST request...');
+    
     const res = await fetch(
       'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c',
       {
@@ -311,29 +315,46 @@ async function submitForm() {
       }
     );
 
-    console.log('Response status:', res.status);
+    console.log('Step 6: Response received');
+    console.log('  Status:', res.status);
+    console.log('  Status Text:', res.statusText);
+    console.log('  Headers:', Object.fromEntries(res.headers.entries()));
+    
     const responseText = await res.text();
-    console.log('Response body:', responseText);
+    console.log('Step 7: Response body:', responseText);
 
     if (!res.ok) {
+      console.error('❌ Webhook returned error status:', res.status);
       throw new Error('Webhook failed: ' + res.status);
     }
 
+    console.log('✓ Webhook accepted request successfully');
+    console.log('Step 8: Setting up callback listener for callbackId:', callbackId);
+    
     // Set up callback listener
     window.handleEstimateCallback = function(result) {
-      console.log('Estimate received:', result);
+      console.log('Step 9: 🎉 CALLBACK RECEIVED!');
+      console.log('Result:', JSON.stringify(result, null, 2));
+      console.log('Total Estimate:', result.totalEstimate);
+      
       document.querySelector('.loading').style.display = 'none';
       document.querySelector('.result').style.display = 'block';
       document.getElementById('price').innerText = 
         '$' + Number(result.totalEstimate).toLocaleString();
+        
+      console.log('✓ Price displayed to user');
     };
 
-    console.log('✓ Submission successful, awaiting callback...');
+    console.log('✓ Form submission complete, awaiting callback from GHL workflow...');
+    console.log('⏳ This may take 30-60 seconds');
 
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('❌ ERROR in submitForm:');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
     document.querySelector('.loading').style.display = 'none';
-    alert('Unable to submit request. Please try again.');
+    alert('Unable to submit request. Please check console and try again.');
     steps[4].style.display = 'block';
     steps[4].classList.add('active');
   }
