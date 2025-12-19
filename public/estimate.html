@@ -232,7 +232,43 @@ window.addEventListener('load',()=>{
 });
 </script>
 </body>
-</html>  background:#0a0e14;border:1px solid #2c3e55;color:#fff;
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Instant Roof Estimate</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD5W9aPwPQQPFXHf4uzYeSAmC8nC15wXsM&libraries=places"
+  defer
+></script>
+
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 40px 16px;
+  background:#0a0e14;
+  font-family: system-ui, sans-serif;
+  color:#fff;
+}
+.card {
+  max-width:520px;
+  margin:auto;
+  background:linear-gradient(180deg,#0f1b2d,#0c1624);
+  border-radius:16px;
+  padding:28px;
+  border:1px solid #243246;
+}
+h1{text-align:center;margin:0;}
+.subtitle{text-align:center;color:#9fb3c8;margin-bottom:16px;}
+.step{display:none;}
+.step.active{display:block;}
+label{display:block;margin-bottom:6px;}
+input{
+  width:100%;padding:14px;border-radius:8px;
+  background:#0a0e14;border:1px solid #2c3e55;color:#fff;
 }
 .buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .btn{
@@ -367,13 +403,13 @@ async function submitForm(){
 
   console.log('Step 2: Payload created:', JSON.stringify(payload, null, 2));
   console.log('Step 3: Payload as string:', JSON.stringify(payload));
-  console.log('Step 4: Webhook URL:', 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/EO7CUMjucJlR9uy7SuDa');
+  console.log('Step 4: Webhook URL:', 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c');
 
   try {
     console.log('Step 5: Sending fetch request...');
     
     const res = await fetch(
-      'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/EO7CUMjucJlR9uy7SuDa',
+      'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c',
       {
         method:'POST',
         headers:{'Content-Type':'application/json'},
