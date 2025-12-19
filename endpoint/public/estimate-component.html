@@ -169,6 +169,204 @@ async function submitForm(){
 
   console.log('Step 2: Payload created:', JSON.stringify(payload, null, 2));
   console.log('Step 3: Payload as string:', JSON.stringify(payload));
+  console.log('Step 4: Webhook URL:', 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c');
+
+  try {
+    console.log('Step 5: Sending fetch request...');
+    
+    const res = await fetch(
+      'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c',
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      }
+    );
+
+    console.log('Step 6: Response received!');
+    console.log('  - Status:', res.status);
+    console.log('  - Status Text:', res.statusText);
+    console.log('  - Headers:', Object.fromEntries(res.headers.entries()));
+    
+    const responseText = await res.text();
+    console.log('Step 7: Response body:', responseText);
+
+    if(!res.ok) {
+      throw new Error('Webhook request failed: ' + res.status);
+    }
+
+    // Show loading message while waiting for callback
+    document.querySelector('.loading').innerHTML = 'Calculating your estimate…<br><small style="margin-top:8px;display:block;color:#9fb3c8;">This may take 30-60 seconds</small>';
+    
+    console.log('Step 8: Request successful, waiting for callback...');
+    
+    // Set up callback listener
+    window.handleEstimateCallback = function(result) {
+      console.log('Step 9: Callback received!', result);
+      document.querySelector('.loading').style.display='none';
+      document.querySelector('.result').style.display='block';
+      document.getElementById('price').innerText = 
+        `$${Number(result.totalEstimate).toLocaleString()}`;
+    };
+
+  } catch(error) {
+    console.error('❌ ERROR in submitForm:', error);
+    console.error('Error stack:', error.stack);
+    document.querySelector('.loading').style.display='none';
+    alert('Unable to submit request. Please try again. Check console for details.');
+    steps[4].style.display='block';
+    steps[4].classList.add('active');
+  }
+}
+
+window.addEventListener('load',()=>{
+  const ac=new google.maps.places.Autocomplete(
+    document.getElementById('address'),
+    {types:['address'],componentRestrictions:{country:'us'}}
+  );
+  ac.addListener('place_changed',()=>{
+    const p=ac.getPlace();
+    data.address1=p.formatted_address||'';
+    console.log('Address selected:', data.address1);
+  });
+});
+</script>
+</body>
+</html>  background:#0a0e14;border:1px solid #2c3e55;color:#fff;
+}
+.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.btn{
+  padding:12px;border-radius:8px;background:#0a0e14;
+  border:1px solid #2c3e55;color:#fff;cursor:pointer;
+}
+.btn.selected{background:#3bbcff;border-color:#3bbcff;}
+.primary{
+  margin-top:16px;width:100%;padding:14px;
+  background:linear-gradient(90deg,#3bbcff,#1f8fff);
+  border:none;border-radius:8px;color:#fff;font-size:16px;cursor:pointer;
+}
+.loading,.result{text-align:center;display:none;}
+.price{font-size:42px;color:#3bbcff;margin-top:16px;}
+</style>
+</head>
+
+<body>
+<div class="card">
+
+<h1>Instant Roof Estimate</h1>
+<div class="subtitle">Answer a few quick questions</div>
+
+<div class="step active">
+  <label>First Name</label>
+  <input id="firstName" />
+  <button class="primary" onclick="next()">Next</button>
+</div>
+
+<div class="step">
+  <label>Email</label>
+  <input id="email" type="email"/>
+  <button class="primary" onclick="next()">Next</button>
+</div>
+
+<div class="step">
+  <label>Property Address</label>
+  <input id="address" placeholder="Start typing address..."/>
+  <button class="primary" onclick="next()">Next</button>
+</div>
+
+<div class="step">
+  <label>Roof Type</label>
+  <div class="buttons">
+    <button class="btn" onclick="pick(this,'Asphalt')">Asphalt</button>
+    <button class="btn" onclick="pick(this,'Metal')">Metal</button>
+    <button class="btn" onclick="pick(this,'Tile')">Tile</button>
+  </div>
+  <button class="primary" onclick="next()">Next</button>
+</div>
+
+<div class="step">
+  <label>Stories</label>
+  <div class="buttons">
+    <button class="btn" onclick="pick(this,1)">1 Story</button>
+    <button class="btn" onclick="pick(this,2)">2 Stories</button>
+    <button class="btn" onclick="pick(this,3)">3+ Stories</button>
+  </div>
+  <button class="primary" onclick="submitForm()">Get My Estimate</button>
+</div>
+
+<div class="loading">Calculating your estimate…</div>
+<div class="result">
+  <h2>Your Instant Estimate</h2>
+  <div class="price" id="price">$0</div>
+</div>
+
+</div>
+
+<script>
+let step=0;
+const steps=document.querySelectorAll('.step');
+
+const data={
+  first_name:'',
+  email:'',
+  address1:'',
+  roof_type:'',
+  of_stories:''
+};
+
+function next(){
+  if(step===0) {
+    data.first_name=firstName.value.trim();
+    if(!data.first_name) return alert('Please enter your first name');
+  }
+  if(step===1) {
+    data.email=email.value.trim();
+    if(!data.email) return alert('Please enter your email');
+  }
+  if(step===2) {
+    data.address1=address.value.trim();
+    if(!data.address1) return alert('Please select an address from the dropdown');
+  }
+  if(step===3) {
+    if(!data.roof_type) return alert('Please select a roof type');
+  }
+  
+  steps[step].classList.remove('active');
+  step++;
+  steps[step].classList.add('active');
+}
+
+function pick(btn,val){
+  btn.parentElement.querySelectorAll('.btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if(step===3) data.roof_type=val;
+  if(step===4) data.of_stories=val;
+}
+
+async function submitForm(){
+  if(!data.of_stories) return alert('Please select number of stories');
+  
+  console.log('=== FORM SUBMISSION DEBUG ===');
+  console.log('Step 1: Current data object:', JSON.stringify(data, null, 2));
+  
+  document.querySelector('.loading').style.display='block';
+  steps.forEach(s=>s.style.display='none');
+
+  // Generate unique callback ID
+  const callbackId = 'est_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  
+  const payload = {
+    first_name: data.first_name,
+    email: data.email,
+    address1: data.address1,
+    roof_type: data.roof_type,
+    of_stories: data.of_stories,
+    callbackId: callbackId,
+    timestamp: new Date().toISOString()
+  };
+
+  console.log('Step 2: Payload created:', JSON.stringify(payload, null, 2));
+  console.log('Step 3: Payload as string:', JSON.stringify(payload));
   console.log('Step 4: Webhook URL:', 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/EO7CUMjucJlR9uy7SuDa');
 
   try {
