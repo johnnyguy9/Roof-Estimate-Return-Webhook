@@ -301,13 +301,13 @@ async function submitForm() {
   };
 
   console.log('Step 3: Payload created (root level):', JSON.stringify(payload, null, 2));
-  console.log('Step 4: Webhook URL:', 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/d2467da0-757d-423f-ad12-32e10bc92127');
+  console.log('Step 4: Webhook URL:', 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c');
 
   try {
     console.log('Step 5: Sending POST request...');
     
     const res = await fetch(
-      'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/d2467da0-757d-423f-ad12-32e10bc92127',
+      'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -329,23 +329,61 @@ async function submitForm() {
     }
 
     console.log('✓ Webhook accepted request successfully');
-    console.log('Step 8: Setting up callback listener for callbackId:', callbackId);
+    console.log('Step 8: Starting result polling for callbackId:', callbackId);
     
-    // Set up callback listener
-    window.handleEstimateCallback = function(result) {
-      console.log('Step 9: 🎉 CALLBACK RECEIVED!');
-      console.log('Result:', JSON.stringify(result, null, 2));
-      console.log('Total Estimate:', result.totalEstimate);
+    // Poll for results every 2 seconds
+    let pollAttempts = 0;
+    const maxPolls = 60; // 2 minutes max (60 * 2 seconds)
+    
+    const pollForResult = async () => {
+      pollAttempts++;
+      console.log(`Polling attempt ${pollAttempts}/${maxPolls}...`);
       
-      document.querySelector('.loading').style.display = 'none';
-      document.querySelector('.result').style.display = 'block';
-      document.getElementById('price').innerText = 
-        '$' + Number(result.totalEstimate).toLocaleString();
+      try {
+        const pollRes = await fetch(
+          `https://roof-estimate-return-webhook-ge3l.vercel.app/api/get-result?callbackId=${callbackId}`
+        );
         
-      console.log('✓ Price displayed to user');
+        if (pollRes.ok) {
+          const result = await pollRes.json();
+          
+          if (result && result.totalEstimate) {
+            console.log('Step 9: 🎉 RESULT RECEIVED!');
+            console.log('Result:', JSON.stringify(result, null, 2));
+            
+            document.querySelector('.loading').style.display = 'none';
+            document.querySelector('.result').style.display = 'block';
+            document.getElementById('price').innerText = 
+              '$' + Number(result.totalEstimate).toLocaleString();
+              
+            console.log('✓ Price displayed to user');
+            return; // Stop polling
+          }
+        }
+        
+        // Continue polling if not found
+        if (pollAttempts < maxPolls) {
+          setTimeout(pollForResult, 2000); // Poll every 2 seconds
+        } else {
+          console.error('❌ Polling timeout - no result received after 2 minutes');
+          document.querySelector('.loading').style.display = 'none';
+          alert('Request timed out. Please try again.');
+          steps[4].style.display = 'block';
+          steps[4].classList.add('active');
+        }
+        
+      } catch (pollError) {
+        console.error('Polling error:', pollError);
+        if (pollAttempts < maxPolls) {
+          setTimeout(pollForResult, 2000);
+        }
+      }
     };
+    
+    // Start polling after 5 seconds (give GHL time to process)
+    setTimeout(pollForResult, 5000);
 
-    console.log('✓ Form submission complete, awaiting callback from GHL workflow...');
+    console.log('✓ Form submission complete, polling for results...');
     console.log('⏳ This may take 30-60 seconds');
 
   } catch (error) {
