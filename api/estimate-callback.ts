@@ -135,24 +135,22 @@ export default async function handler(req, res) {
     
     log('info', 'callbackId validated', { requestId, callbackId });
 
-    // Validation: status
-    if (!status || !['success', 'error'].includes(status)) {
-      log('error', 'Validation failed: Invalid status', { 
+    // Status is now optional - default to 'success' if not provided or invalid
+    const validStatus = status && ['success', 'error'].includes(status) ? status : 'success';
+    
+    if (status && !['success', 'error'].includes(status)) {
+      log('warn', 'Invalid status provided, defaulting to success', { 
         requestId,
         callbackId,
-        status,
-        allowedValues: ['success', 'error']
-      });
-      return res.status(400).json({ 
-        error: 'Invalid status. Must be "success" or "error"',
-        received: status
+        providedStatus: status,
+        usingStatus: validStatus
       });
     }
     
-    log('info', 'Status validated', { requestId, callbackId, status });
+    log('info', 'Status determined', { requestId, callbackId, status: validStatus });
 
     // Validation: totalEstimate for success
-    if (status === 'success') {
+    if (validStatus === 'success') {
       if (typeof totalEstimate !== 'number') {
         log('error', 'Validation failed: Invalid totalEstimate for success', { 
           requestId,
@@ -181,7 +179,7 @@ export default async function handler(req, res) {
 
     // Build result object
     const result: EstimateResult = {
-      status,
+      status: validStatus,
       receivedAt: Date.now(),
       ...(totalEstimate !== undefined && { totalEstimate }),
       ...(message && { message })
@@ -213,7 +211,7 @@ export default async function handler(req, res) {
     log('info', '✓ Callback processed successfully', {
       requestId,
       callbackId,
-      status,
+      status: validStatus,
       totalEstimate,
       processingTime: `${Date.now() - result.receivedAt}ms`,
       currentStoreSize: resultStore.size
@@ -277,7 +275,7 @@ export default async function handler(req, res) {
           (function() {
             console.log('[CallbackPage] Starting notification sequence');
             console.log('[CallbackPage] callbackId:', '${callbackId}');
-            console.log('[CallbackPage] status:', '${status}');
+            console.log('[CallbackPage] status:', '${validStatus}');
             
             const result = ${JSON.stringify(result)};
             const callbackId = ${JSON.stringify(callbackId)};
@@ -485,4 +483,4 @@ export function getStats() {
   log('info', 'Stats generated', stats);
   
   return stats;
-    }
+}
