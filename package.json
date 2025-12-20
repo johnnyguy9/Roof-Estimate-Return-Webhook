@@ -1,9 +1,11 @@
 {
-  "name": "estimate-callback-api",
+  "name": "roof-estimate-return-webhook",
   "version": "1.0.0",
-  "description": "Estimate callback endpoints",
+  "private": true,
   "scripts": {
-    "build": "echo 'Serverless functions - no build needed'"
+    "dev": "vercel dev",
+    "build": "echo 'Build complete'",
+    "start": "vercel dev"
   },
   "dependencies": {},
   "devDependencies": {
