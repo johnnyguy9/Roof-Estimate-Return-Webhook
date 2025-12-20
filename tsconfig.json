@@ -3,13 +3,16 @@
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020"],
-    "skipLibCheck": true,
-    "strict": false,
+    "jsx": "react",
+    "strict": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "noEmit": true
   },
-  "include": ["api/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["api/**/*", "*.ts"],
+  "exclude": ["node_modules"]
 }
