@@ -5,146 +5,50 @@
 <title>Instant Roof Estimate</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD5W9aPwPQQPFXHf4uzYeSAmC8nC15wXsM&libraries=places&callback=initAutocomplete" async></script>
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD5W9aPwPQQPFXHf4uzYeSAmC8nC15wXsM&libraries=places"
+  defer
+></script>
 
 <style>
 * { box-sizing: border-box; }
 body {
   margin: 0;
   padding: 40px 16px;
-  background: #0a0e14;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  color: #fff;
+  background:#0a0e14;
+  font-family: system-ui, sans-serif;
+  color:#fff;
 }
 .card {
-  max-width: 520px;
-  margin: auto;
-  background: linear-gradient(180deg, #0f1b2d, #0c1624);
-  border-radius: 16px;
-  padding: 32px;
-  border: 1px solid #243246;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  max-width:520px;
+  margin:auto;
+  background:linear-gradient(180deg,#0f1b2d,#0c1624);
+  border-radius:16px;
+  padding:28px;
+  border:1px solid #243246;
 }
-h1 {
-  text-align: center;
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 700;
+h1{text-align:center;margin:0;}
+.subtitle{text-align:center;color:#9fb3c8;margin-bottom:16px;}
+.step{display:none;}
+.step.active{display:block;}
+label{display:block;margin-bottom:6px;}
+input{
+  width:100%;padding:14px;border-radius:8px;
+  background:#0a0e14;border:1px solid #2c3e55;color:#fff;
 }
-.subtitle {
-  text-align: center;
-  color: #9fb3c8;
-  margin-bottom: 24px;
-  font-size: 15px;
+.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.btn{
+  padding:12px;border-radius:8px;background:#0a0e14;
+  border:1px solid #2c3e55;color:#fff;cursor:pointer;
 }
-.step {
-  display: none;
+.btn.selected{background:#3bbcff;border-color:#3bbcff;}
+.primary{
+  margin-top:16px;width:100%;padding:14px;
+  background:linear-gradient(90deg,#3bbcff,#1f8fff);
+  border:none;border-radius:8px;color:#fff;font-size:16px;cursor:pointer;
 }
-.step.active {
-  display: block;
-  animation: fadeIn 0.3s ease-in;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  font-size: 15px;
-}
-input {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 8px;
-  background: #0a0e14;
-  border: 1px solid #2c3e55;
-  color: #fff;
-  font-size: 15px;
-  transition: border-color 0.2s;
-}
-input:focus {
-  outline: none;
-  border-color: #3bbcff;
-}
-.buttons {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 12px;
-}
-.btn {
-  padding: 14px;
-  border-radius: 8px;
-  background: #0a0e14;
-  border: 2px solid #2c3e55;
-  color: #fff;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-.btn:hover {
-  border-color: #3bbcff;
-  background: rgba(59, 188, 255, 0.1);
-}
-.btn.selected {
-  background: #3bbcff;
-  border-color: #3bbcff;
-  color: #0a0e14;
-  font-weight: 600;
-}
-.primary {
-  margin-top: 20px;
-  width: 100%;
-  padding: 16px;
-  background: linear-gradient(90deg, #3bbcff, #1f8fff);
-  border: none;
-  border-radius: 8px;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(59, 188, 255, 0.4);
-}
-.primary:active {
-  transform: translateY(0);
-}
-.loading, .result {
-  text-align: center;
-  display: none;
-}
-.loading {
-  padding: 40px 20px;
-}
-.spinner {
-  border: 3px solid #2c3e55;
-  border-top: 3px solid #3bbcff;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
-}
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-.result {
-  padding: 40px 20px;
-}
-.price {
-  font-size: 48px;
-  font-weight: 700;
-  color: #3bbcff;
-  margin-top: 16px;
-  text-shadow: 0 2px 8px rgba(59, 188, 255, 0.3);
-}
+.success{text-align:center;display:none;padding:40px 20px;}
+.success h2{color:#4ade80;}
 </style>
 </head>
 
@@ -156,20 +60,19 @@ input:focus {
 
 <div class="step active">
   <label>First Name</label>
-  <input id="firstName" placeholder="Enter your first name" />
+  <input id="firstName" />
   <button class="primary" onclick="next()">Next</button>
 </div>
 
 <div class="step">
   <label>Email</label>
-  <input id="email" type="email" placeholder="your@email.com" />
+  <input id="email" type="email"/>
   <button class="primary" onclick="next()">Next</button>
 </div>
 
 <div class="step">
   <label>Property Address</label>
-  <input id="address" placeholder="Start typing your address..." />
-  <small style="color: #9fb3c8; font-size: 13px; margin-top: 6px; display: block;">Select from dropdown</small>
+  <input id="address" placeholder="Start typing address..."/>
   <button class="primary" onclick="next()">Next</button>
 </div>
 
@@ -193,74 +96,40 @@ input:focus {
   <button class="primary" onclick="submitForm()">Get My Estimate</button>
 </div>
 
-<div class="loading">
-  <div class="spinner"></div>
-  <h3>Calculating your estimate…</h3>
-  <p style="color: #9fb3c8; margin-top: 12px;">This may take 30-60 seconds</p>
-</div>
-
-<div class="result">
-  <h2 style="margin: 0 0 8px 0;">Your Instant Estimate</h2>
-  <div class="price" id="price">$0</div>
-  <p style="color: #9fb3c8; margin-top: 16px; font-size: 14px;">This is an estimated range. A professional inspection may reveal additional needs.</p>
+<div class="success">
+  <h2>✓ Request Submitted!</h2>
+  <p>We'll email your estimate shortly!</p>
 </div>
 
 </div>
 
 <script>
-// Google Places Autocomplete - must be global for callback
-function initAutocomplete() {
-  console.log('✓ Google Maps API loaded, initializing autocomplete...');
-  
-  const addressInput = document.getElementById('address');
-  if (!addressInput) {
-    console.error('Address input not found');
-    return;
-  }
-  
-  const ac = new google.maps.places.Autocomplete(addressInput, {
-    types: ['address'],
-    componentRestrictions: { country: 'us' }
-  });
-  
-  ac.addListener('place_changed', () => {
-    const p = ac.getPlace();
-    window.formData.address1 = p.formatted_address || '';
-    console.log('Address selected:', window.formData.address1);
-  });
-  
-  console.log('✓ Autocomplete initialized successfully');
-}
+let step=0;
+const steps=document.querySelectorAll('.step');
 
-let step = 0;
-const steps = document.querySelectorAll('.step');
-
-const data = {
-  first_name: '',
-  email: '',
-  address1: '',
-  roof_type: '',
-  of_stories: ''
+const data={
+  firstName:'',
+  email:'',
+  address:'',
+  roofType:'',
+  stories:''
 };
 
-// Make data global so autocomplete can access it
-window.formData = data;
-
-function next() {
-  if (step === 0) {
-    data.first_name = firstName.value.trim();
-    if (!data.first_name) return alert('Please enter your first name');
+function next(){
+  if(step===0) {
+    data.firstName=firstName.value.trim();
+    if(!data.firstName) return alert('Please enter your first name');
   }
-  if (step === 1) {
-    data.email = email.value.trim();
-    if (!data.email || !email.checkValidity()) return alert('Please enter a valid email');
+  if(step===1) {
+    data.email=email.value.trim();
+    if(!data.email) return alert('Please enter your email');
   }
-  if (step === 2) {
-    data.address1 = address.value.trim();
-    if (!data.address1) return alert('Please select an address from the dropdown');
+  if(step===2) {
+    data.address=address.value.trim();
+    if(!data.address) return alert('Please enter your address');
   }
-  if (step === 3) {
-    if (!data.roof_type) return alert('Please select a roof type');
+  if(step===3) {
+    if(!data.roofType) return alert('Please select a roof type');
   }
   
   steps[step].classList.remove('active');
@@ -268,135 +137,63 @@ function next() {
   steps[step].classList.add('active');
 }
 
-function pick(btn, val) {
-  btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('selected'));
+function pick(btn,val){
+  btn.parentElement.querySelectorAll('.btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
-  if (step === 3) data.roof_type = val;
-  if (step === 4) data.of_stories = val;
+  if(step===3) data.roofType=val;
+  if(step===4) data.stories=val;
 }
 
-async function submitForm() {
-  if (!data.of_stories) return alert('Please select number of stories');
+async function submitForm(){
+  if(!data.stories) return alert('Please select number of stories');
   
-  console.log('=== FORM SUBMISSION ===');
-  console.log('Step 1: Form data collected:', JSON.stringify(data, null, 2));
+  console.log('Submitting:', data);
   
-  // Hide form, show loading
-  steps.forEach(s => s.style.display = 'none');
-  document.querySelector('.loading').style.display = 'block';
-
-  // Generate unique callback ID
-  const callbackId = 'est_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-  console.log('Step 2: Generated callbackId:', callbackId);
-  
-  // IMPORTANT: Send fields at ROOT level, not nested in "data"
   const payload = {
-    first_name: data.first_name,
+    firstName: data.firstName,
     email: data.email,
-    address1: data.address1,
-    roof_type: data.roof_type,
-    of_stories: data.of_stories,
-    callbackId: callbackId,
+    address: data.address,
+    roofType: data.roofType,
+    stories: data.stories,
     timestamp: new Date().toISOString()
   };
 
-  console.log('Step 3: Payload created (root level):', JSON.stringify(payload, null, 2));
-  console.log('Step 4: Webhook URL:', 'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c');
-
   try {
-    console.log('Step 5: Sending POST request...');
-    
     const res = await fetch(
-      'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/1c945049-f5dd-444a-aae2-2b8dc780ed9c',
+      'https://services.leadconnectorhq.com/hooks/FDGIykNfntzs46TT1VA7/webhook-trigger/d2467da0-757d-423f-ad12-32e10bc92127',
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
       }
     );
 
-    console.log('Step 6: Response received');
-    console.log('  Status:', res.status);
-    console.log('  Status Text:', res.statusText);
-    console.log('  Headers:', Object.fromEntries(res.headers.entries()));
-    
-    const responseText = await res.text();
-    console.log('Step 7: Response body:', responseText);
+    console.log('Response:', res.status);
 
-    if (!res.ok) {
-      console.error('❌ Webhook returned error status:', res.status);
-      throw new Error('Webhook failed: ' + res.status);
+    if(res.ok) {
+      steps.forEach(s=>s.style.display='none');
+      document.querySelector('.success').style.display='block';
+    } else {
+      alert('Submission failed. Please try again.');
     }
 
-    console.log('✓ Webhook accepted request successfully');
-    console.log('Step 8: Starting result polling for callbackId:', callbackId);
-    
-    // Poll for results every 2 seconds
-    let pollAttempts = 0;
-    const maxPolls = 60; // 2 minutes max (60 * 2 seconds)
-    
-    const pollForResult = async () => {
-      pollAttempts++;
-      console.log(`Polling attempt ${pollAttempts}/${maxPolls}...`);
-      
-      try {
-        const pollRes = await fetch(
-          `https://roof-estimate-return-webhook-ge3l.vercel.app/api/get-result?callbackId=${callbackId}`
-        );
-        
-        if (pollRes.ok) {
-          const result = await pollRes.json();
-          
-          if (result && result.totalEstimate) {
-            console.log('Step 9: 🎉 RESULT RECEIVED!');
-            console.log('Result:', JSON.stringify(result, null, 2));
-            
-            document.querySelector('.loading').style.display = 'none';
-            document.querySelector('.result').style.display = 'block';
-            document.getElementById('price').innerText = 
-              '$' + Number(result.totalEstimate).toLocaleString();
-              
-            console.log('✓ Price displayed to user');
-            return; // Stop polling
-          }
-        }
-        
-        // Continue polling if not found
-        if (pollAttempts < maxPolls) {
-          setTimeout(pollForResult, 2000); // Poll every 2 seconds
-        } else {
-          console.error('❌ Polling timeout - no result received after 2 minutes');
-          document.querySelector('.loading').style.display = 'none';
-          alert('Request timed out. Please try again.');
-          steps[4].style.display = 'block';
-          steps[4].classList.add('active');
-        }
-        
-      } catch (pollError) {
-        console.error('Polling error:', pollError);
-        if (pollAttempts < maxPolls) {
-          setTimeout(pollForResult, 2000);
-        }
-      }
-    };
-    
-    // Start polling after 5 seconds (give GHL time to process)
-    setTimeout(pollForResult, 5000);
-
-    console.log('✓ Form submission complete, polling for results...');
-    console.log('⏳ This may take 30-60 seconds');
-
-  } catch (error) {
-    console.error('❌ ERROR in submitForm:');
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    
-    document.querySelector('.loading').style.display = 'none';
-    alert('Unable to submit request. Please check console and try again.');
-    steps[4].style.display = 'block';
-    steps[4].classList.add('active');
+  } catch(error) {
+    console.error('Error:', error);
+    alert('Unable to submit. Please try again.');
   }
 }
+
+window.addEventListener('load',()=>{
+  const ac=new google.maps.places.Autocomplete(
+    document.getElementById('address'),
+    {types:['address'],componentRestrictions:{country:'us'}}
+  );
+  ac.addListener('place_changed',()=>{
+    const p=ac.getPlace();
+    data.address=p.formatted_address||'';
+    console.log('Address selected:', data.address);
+  });
+});
 </script>
 </body>
 </html>
