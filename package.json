@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'Build complete'",
-    "start": "vercel dev"
+    "build": "echo 'Build complete'"
   },
   "dependencies": {},
   "devDependencies": {
