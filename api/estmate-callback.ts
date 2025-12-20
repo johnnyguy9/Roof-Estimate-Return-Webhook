@@ -1,24 +1,24 @@
 // /api/estimate-callback.ts
-// Receives estimate results from GHL webhook
+// Receives estimate results from GHL workflow
 
 const LOG_PREFIX = '[EstimateCallback]';
 
 function log(level: 'info' | 'warn' | 'error', message: string, data?: any) {
   const timestamp = new Date().toISOString();
-  const logData = data ? JSON.stringify(data, null, 2) : '';
-  console.log(`${timestamp} ${LOG_PREFIX} [${level.toUpperCase()}] ${message}`, logData);
+  console.log(`${timestamp} ${LOG_PREFIX} [${level.toUpperCase()}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
 }
 
 interface EstimateResult {
   status: 'success' | 'error';
   totalEstimate?: number;
+  squares?: number;
   message?: string;
   receivedAt: number;
 }
 
-// In-memory storage (results expire after 5 minutes)
+// In-memory storage
 const resultStore = new Map<string, EstimateResult>();
-const RESULT_TTL = 5 * 60 * 1000;
+const RESULT_TTL = 5 * 60 * 1000; // 5 minutes
 
 // Auto-cleanup
 setInterval(() => {
@@ -26,17 +26,23 @@ setInterval(() => {
   for (const [id, result] of resultStore.entries()) {
     if (now - result.receivedAt > RESULT_TTL) {
       resultStore.delete(id);
+      log('info', 'Cleaned expired result', { callbackId: id });
     }
   }
 }, 60 * 1000);
 
+log('info', 'Result store initialized');
+
 export default async function handler(req: any, res: any) {
   const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
-  log('info', '=== NEW REQUEST ===', { 
+  log('info', '=== CALLBACK RECEIVED ===', { 
     requestId,
     method: req.method,
-    url: req.url
+    headers: {
+      contentType: req.headers['content-type'],
+      userAgent: req.headers['user-agent']
+    }
   });
 
   // CORS
@@ -49,41 +55,56 @@ export default async function handler(req: any, res: any) {
   }
 
   if (req.method !== 'POST') {
+    log('warn', 'Invalid method', { requestId, method: req.method });
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Extract from GHL payload
     const { callbackId, status } = req.body;
     
-    // GHL sends as "Total Estimate $" field
+    // GHL sends the estimate field as "Total Estimate $"
     const totalEstimate = req.body.totalEstimate || 
                           req.body['Total Estimate $'] || 
                           req.body['total_estimate_'];
     
+    const squares = req.body.squares || req.body.Squares;
     const message = req.body.message;
     
-    log('info', 'Request body parsed', { 
+    log('info', 'Body parsed', { 
       requestId,
       callbackId,
       status,
       totalEstimate,
-      bodyKeys: Object.keys(req.body)
+      squares,
+      bodyKeys: Object.keys(req.body).slice(0, 10)
     });
 
     // Validate callbackId
     if (!callbackId || typeof callbackId !== 'string') {
-      log('error', 'Invalid callbackId', { requestId, callbackId });
+      log('error', 'Missing callbackId', { requestId, callbackId });
       return res.status(400).json({ error: 'Missing callbackId' });
     }
 
-    // Status defaults to success
-    const validStatus = status && ['success', 'error'].includes(status) ? status : 'success';
+    log('info', 'callbackId validated', { requestId, callbackId });
 
-    // Validate totalEstimate
+    // Status defaults to success
+    const validStatus = (status && ['success', 'error'].includes(status)) ? status : 'success';
+    
+    log('info', 'Status determined', { requestId, callbackId, status: validStatus });
+
+    // Validate totalEstimate for success
     if (validStatus === 'success' && typeof totalEstimate !== 'number') {
-      log('error', 'Invalid totalEstimate', { requestId, totalEstimate });
-      return res.status(400).json({ error: 'totalEstimate must be a number' });
+      log('error', 'Invalid totalEstimate', { 
+        requestId, 
+        callbackId, 
+        totalEstimate,
+        type: typeof totalEstimate 
+      });
+      return res.status(400).json({ 
+        error: 'totalEstimate must be a number',
+        received: totalEstimate,
+        type: typeof totalEstimate
+      });
     }
 
     // Store result
@@ -91,29 +112,36 @@ export default async function handler(req: any, res: any) {
       status: validStatus,
       receivedAt: Date.now(),
       ...(totalEstimate !== undefined && { totalEstimate }),
+      ...(squares !== undefined && { squares }),
       ...(message && { message })
     };
     
     resultStore.set(callbackId, result);
     
-    log('info', '✓ Callback processed', { requestId, callbackId, result });
+    log('info', '✓ Result stored', { 
+      requestId, 
+      callbackId, 
+      result,
+      storeSize: resultStore.size 
+    });
 
-    // Return success HTML
-    return res.status(200).send(`
-      <!DOCTYPE html>
-      <html><body>
-        <p>Estimate received: $${totalEstimate}</p>
-        <script>console.log('Callback processed:', ${JSON.stringify(result)});</script>
-      </body></html>
-    `);
+    return res.status(200).json({ 
+      success: true,
+      callbackId,
+      stored: true
+    });
 
   } catch (error: any) {
-    log('error', 'Error processing callback', { requestId, error: error.message });
+    log('error', 'Error processing callback', { 
+      requestId, 
+      error: error.message,
+      stack: error.stack
+    });
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
-// Export for polling endpoint
+// Export for get-result endpoint
 export function getResult(callbackId: string): EstimateResult | null {
   const result = resultStore.get(callbackId);
   if (!result) return null;
