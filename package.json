@@ -1,12 +1,7 @@
 {
-  "name": "roof-estimate-return-webhook",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'Build complete'"
+  "dependencies": {
+    "@vercel/kv": "^1.0.0"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
