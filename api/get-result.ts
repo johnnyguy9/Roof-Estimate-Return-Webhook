@@ -11,7 +11,6 @@ function log(level: 'info' | 'warn' | 'error', message: string, data?: any) {
 export default async function handler(req: any, res: any) {
   const requestId = `poll_${Date.now()}`;
   
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -34,7 +33,6 @@ export default async function handler(req: any, res: any) {
   log('info', 'Checking Redis for result', { requestId, callbackId });
 
   try {
-    // Get from Redis
     const result = await kv.get(`estimate:${callbackId}`);
 
     if (!result) {
