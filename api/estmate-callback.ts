@@ -32,7 +32,6 @@ export default async function handler(req: any, res: any) {
   try {
     const { callbackId, status } = req.body;
     
-    // Extract totalEstimate from various possible field names
     const totalEstimate = req.body.totalEstimate || 
                           req.body['Total Estimate $'] || 
                           req.body['total_estimate_'];
@@ -48,22 +47,18 @@ export default async function handler(req: any, res: any) {
       squares
     });
 
-    // Validate callbackId
     if (!callbackId || typeof callbackId !== 'string') {
       log('error', 'Missing callbackId', { requestId });
       return res.status(400).json({ error: 'Missing callbackId' });
     }
 
-    // Status defaults to success
     const validStatus = (status && ['success', 'error'].includes(status)) ? status : 'success';
 
-    // Validate totalEstimate
     if (validStatus === 'success' && typeof totalEstimate !== 'number') {
       log('error', 'Invalid totalEstimate', { requestId, totalEstimate, type: typeof totalEstimate });
       return res.status(400).json({ error: 'totalEstimate must be a number' });
     }
 
-    // Build result
     const result = {
       status: validStatus,
       receivedAt: Date.now(),
@@ -72,7 +67,6 @@ export default async function handler(req: any, res: any) {
       ...(message && { message })
     };
     
-    // Store in Redis with 5 minute expiry
     await kv.set(`estimate:${callbackId}`, result, { ex: 300 });
     
     log('info', '✓ Result stored in Redis', { requestId, callbackId, result });
