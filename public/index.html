@@ -328,13 +328,13 @@ async function submitForm() {
   const callbackId = 'est_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   console.log('Generated callbackId:', callbackId);
   
-  // Prepare payload
+  // Prepare payload - UPDATED TO MATCH GHL MAPPING EXACTLY
   const payload = {
-    firstName: formData.firstName,
+    first_name: formData.firstName,
     email: formData.email,
-    address: formData.address,
-    roofType: formData.roofType,
-    stories: formData.stories,
+    address1: formData.address,
+    roof_type: formData.roofType,
+    of_stories: formData.stories,
     callbackId: callbackId,
     timestamp: new Date().toISOString()
   };
